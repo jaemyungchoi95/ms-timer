@@ -1,6 +1,7 @@
 import { computeRemaining } from '../lib/countdown.js';
 import { FlipDigit } from './flip-digit.js';
 import { Reel } from './reel.js';
+import { initTheme } from './theme.js';
 
 const clockEl = document.getElementById('clock');
 const labelEl = document.getElementById('label');
@@ -37,4 +38,5 @@ function tick() {
   requestAnimationFrame(tick);
 }
 
+initTheme();
 requestAnimationFrame(tick);
