@@ -1,0 +1,59 @@
+# ms-timer
+
+18시 정각까지 남은 시간을 1ms 단위로 표시하는 플립 시계.
+
+시:분:초는 플립 카드가 착착 넘어가고, ms 3자리는 읽을 수 없는 속도로 흐른다.
+
+## 실행
+
+`dist/ms-timer.exe` — 설치 불필요.
+
+- **`T`** — 테마 전환 (다크 모던 ↔ 레트로 민트)
+
+18시에 도달하면 `00:00:00.000`에서 멈추고 "퇴근"을 표시한다.
+자정을 넘기면 자동으로 다음 날 18시 카운트다운이 시작되므로 켜둔 채로 둬도 된다.
+
+테마는 다음 실행 시 기억된다.
+
+## 왜 ms 자리는 플립하지 않나
+
+플립 애니메이션 1회는 최소 250ms가 필요하다. 그보다 짧으면 종이가 넘어가는 것으로
+지각되지 않고 깜빡임이 된다. ms 자리는 1~100ms마다 바뀌므로 구조적으로 플립할 수 없다.
+
+그래서 릴로 흐르게 했다. 모니터는 60Hz(16.7ms)이므로 오른쪽 릴은 초당 100바퀴를
+돌지만 60번만 샘플링된다 — 읽을 수 없는 것이 정상이고 의도다.
+"시간이 흐른다"(플립)와 "시간이 미친듯이 흐른다"(릴)를 한 화면에서 대비시키는 것이
+이 앱의 전부다.
+
+## 개발
+
+프로젝트는 반드시 `/mnt/c` 아래에 둔다. WSL 파일시스템에 두면 Windows node가
+`\\wsl$` UNC 경로로 접근하며 electron-builder가 실패한다.
+
+```bash
+node --test                              # 테스트 (WSL node)
+cmd.exe /c "npm install"                 # 의존성 (Windows node 필수)
+cmd.exe /c "npx electron ."              # 개발 실행
+cmd.exe /c "npx electron-builder --win portable"   # exe 빌드 → dist/ms-timer.exe
+```
+
+`npm install`을 WSL node로 하면 linux용 electron 바이너리가 받아져 실행되지 않는다.
+
+## 구조
+
+```
+src/lib/          순수 함수 — 로직 전부, 테스트 전부, DOM 모름
+  countdown.js      시간 계산
+  reel-phase.js     릴 위상 계산
+src/renderer/     표현 계층 — 로직 없음, 테스트 없음
+  flip-digit.js     카드 1장
+  reel.js           릴 1개
+  theme.js          테마 토글
+  clock.js          조립 + rAF 루프
+src/main.js       BrowserWindow 생성
+```
+
+시간 계산은 절대 시각 차분(`오늘 18시 - now`)이다. 누적 감산이 아니므로
+드리프트가 없고 절전 복귀·NTP 보정·타임존 변경이 자동으로 반영된다.
+
+그래픽이 통째로 바뀌어도 `src/lib/`는 손대지 않는다 — 이 경계가 요점이다.
