@@ -1,7 +1,5 @@
 import { reelPhase } from '../lib/reel-phase.js';
 
-const STRIP_DIGITS = 11; // 0..9 + wrap용 0
-
 /**
  * 연속 회전하는 숫자 릴 하나.
  *
@@ -17,6 +15,7 @@ export class Reel {
   constructor(root, place, blurPx) {
     this.strip = root.querySelector('.reel-strip');
     this.place = place;
+    this.stripDigits = this.strip.children.length; // 0..9 + wrap용 0 — 마크업의 span 개수에서 파생
     if (blurPx > 0) {
       this.strip.style.filter = `blur(${blurPx}px)`;
     }
@@ -25,6 +24,6 @@ export class Reel {
   /** @param {number} ms 0..999 */
   update(ms) {
     const phase = reelPhase(ms, this.place);
-    this.strip.style.transform = `translateY(${(-phase * 100) / STRIP_DIGITS}%)`;
+    this.strip.style.transform = `translateY(${(-phase * 100) / this.stripDigits}%)`;
   }
 }

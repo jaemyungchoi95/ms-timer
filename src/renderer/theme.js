@@ -2,8 +2,8 @@ const THEMES = ['dark', 'retro'];
 const STORAGE_KEY = 'ms-timer:theme';
 
 /**
- * localStorage는 Electron의 file:// origin에서 막힐 수 있다.
- * 막히면 세션 전용 토글로 동작한다 — 기능은 유지된다.
+ * Electron 43은 file:// origin에서 localStorage를 허용함이 실측으로 확인됨(2026-07-15).
+ * try/catch는 차단되는 환경을 위한 fallback으로 유지 — 그 경우 세션 전용 토글로 동작한다.
  */
 function readTheme() {
   try {
