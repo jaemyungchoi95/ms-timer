@@ -1,0 +1,29 @@
+{
+  "name": "ms-timer",
+  "version": "1.0.0",
+  "description": "18시 정각까지 1ms 단위 카운트다운 플립 시계",
+  "author": "jmchoi",
+  "license": "MIT",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "electron .",
+    "build": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^43.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.jmchoi.ms-timer",
+    "productName": "ms-timer",
+    "files": ["src/**/*", "package.json"],
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "artifactName": "ms-timer.exe"
+    }
+  }
+}
