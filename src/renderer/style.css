@@ -139,6 +139,43 @@ body {
   to   { transform: rotateX(0deg); }
 }
 
+.dot {
+  align-self: flex-end;
+  font-size: calc(var(--digit-size) * 0.5);
+  font-weight: 600;
+  color: var(--sep-fg);
+  padding: 0 calc(var(--gap) * 0.5) calc(var(--card-h) * 0.08);
+}
+
+.reel {
+  position: relative;
+  width: calc(var(--card-h) * 0.28);
+  height: calc(var(--card-h) * 0.4);
+  overflow: hidden;
+}
+
+.reel-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+}
+
+.reel-strip > span {
+  display: block;
+  height: calc(var(--card-h) * 0.4);
+  line-height: calc(var(--card-h) * 0.4);
+  text-align: center;
+  font-size: calc(var(--card-h) * 0.32);
+  font-weight: 600;
+  color: var(--reel-fg);
+}
+
+.clock.expired .reel-strip > span {
+  color: var(--accent);
+}
+
 .label {
   font-size: calc(var(--card-h) * 0.15);
   letter-spacing: 0.35em;
