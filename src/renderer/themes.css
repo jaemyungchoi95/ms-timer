@@ -1,0 +1,26 @@
+:root,
+:root[data-theme="dark"] {
+  --bg: #0b0d10;
+  --frame-bg: #15181d;
+  --card-bg: #1c1f24;
+  --card-fg: #f7f8f8;
+  --card-divider: #0b0d10;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --sep-fg: #3a3f46;
+  --reel-fg: #6b7280;
+  --label-fg: #6b7280;
+  --accent: #4ade80;
+}
+
+:root[data-theme="retro"] {
+  --bg: #8fc4b2;
+  --frame-bg: #4f8f7c;
+  --card-bg: #f4f0e4;
+  --card-fg: #2c4a3e;
+  --card-divider: #cbc5b4;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --sep-fg: #2c4a3e;
+  --reel-fg: #6d8a7d;
+  --label-fg: #2c4a3e;
+  --accent: #1f6b4a;
+}

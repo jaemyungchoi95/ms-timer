@@ -1,0 +1,107 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --card-h: clamp(3rem, min(11vw, 30vh), 7.5rem);
+  --card-w: calc(var(--card-h) * 0.68);
+  --card-radius: calc(var(--card-h) * 0.08);
+  --digit-size: calc(var(--card-h) * 0.7);
+  --gap: calc(var(--card-h) * 0.06);
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.clock {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--card-h) * 0.18);
+}
+
+.frame {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: calc(var(--card-h) * 0.16);
+  border-radius: calc(var(--card-radius) * 1.8);
+  background: var(--frame-bg);
+}
+
+.sep {
+  font-size: calc(var(--digit-size) * 0.5);
+  font-weight: 600;
+  color: var(--sep-fg);
+  padding: 0 calc(var(--gap) * 0.5);
+}
+
+/* 카드 */
+.flip {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  perspective: calc(var(--card-h) * 4);
+}
+
+.flip > div {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+.flip > div > span {
+  display: block;
+  height: var(--card-h);
+  line-height: var(--card-h);
+  text-align: center;
+  font-size: var(--digit-size);
+  font-weight: 600;
+  color: var(--card-fg);
+}
+
+.flip-top {
+  top: 0;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+  border-bottom: 1px solid var(--card-divider);
+}
+
+.flip-bottom {
+  bottom: 0;
+  border-radius: 0 0 var(--card-radius) var(--card-radius);
+}
+
+/* 하단 조각: span을 위로 당겨 숫자의 아래 절반만 노출 */
+.flip-bottom > span {
+  margin-top: calc(var(--card-h) / -2);
+}
+
+.label {
+  font-size: calc(var(--card-h) * 0.15);
+  letter-spacing: 0.35em;
+  color: var(--label-fg);
+}
+
+.clock.expired .flip > div > span {
+  color: var(--accent);
+}
+
+.clock.expired .label {
+  color: var(--accent);
+}
