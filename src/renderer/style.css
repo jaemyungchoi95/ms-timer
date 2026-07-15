@@ -92,6 +92,53 @@ body {
   margin-top: calc(var(--card-h) / -2);
 }
 
+/* 접히는 조각 — 정지 상태에선 존재하지 않는다 */
+.flip-fold-top,
+.flip-fold-bottom {
+  display: none;
+  z-index: 2;
+}
+
+.flip-fold-top {
+  top: 0;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+  border-bottom: 1px solid var(--card-divider);
+  transform-origin: bottom;
+}
+
+.flip-fold-bottom {
+  bottom: 0;
+  border-radius: 0 0 var(--card-radius) var(--card-radius);
+  transform-origin: top;
+}
+
+.flip-fold-bottom > span {
+  margin-top: calc(var(--card-h) / -2);
+}
+
+.flip.flipping .flip-fold-top,
+.flip.flipping .flip-fold-bottom {
+  display: block;
+}
+
+.flip.flipping .flip-fold-top {
+  animation: fold-top 150ms ease-in forwards;
+}
+
+.flip.flipping .flip-fold-bottom {
+  animation: fold-bottom 150ms ease-out 150ms both;
+}
+
+@keyframes fold-top {
+  from { transform: rotateX(0deg); }
+  to   { transform: rotateX(-90deg); }
+}
+
+@keyframes fold-bottom {
+  from { transform: rotateX(90deg); }
+  to   { transform: rotateX(0deg); }
+}
+
 .label {
   font-size: calc(var(--card-h) * 0.15);
   letter-spacing: 0.35em;
