@@ -108,8 +108,6 @@ export function initTargetEditor(root, onChange) {
         if (i < cells.length - 1) cells[i + 1].focus();
         return;
       }
-      if (e.key === 'Enter') { commit(); return; }
-      if (e.key === 'Escape') { cancel(); return; }
       if (e.key === 'ArrowLeft' && i > 0) { cells[i - 1].focus(); e.preventDefault(); return; }
       if (e.key === 'ArrowRight' && i < cells.length - 1) { cells[i + 1].focus(); e.preventDefault(); return; }
       // 빈 칸에서 Backspace 면 이전 칸으로
@@ -118,6 +116,16 @@ export function initTargetEditor(root, onChange) {
         e.preventDefault();
       }
     });
+  });
+
+  // Enter/Escape는 칸이 아니라 편집기 전체의 관심사이므로 컨테이너에 바인딩한다.
+  // ✓/↻ 버튼은 <input>이 아니라 셀별 keydown 핸들러가 닿지 않으므로 여기서만 잡힌다.
+  // 같은 리스너에서 무조건 stopPropagation 하여, 편집기 내부의 모든 키 입력이
+  // window(theme.js의 T 토글)까지 버블링되지 않도록 경계를 명확히 한다.
+  edit.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') commit();
+    else if (e.key === 'Escape') cancel();
+    e.stopPropagation();
   });
 
   display.addEventListener('click', showEdit);

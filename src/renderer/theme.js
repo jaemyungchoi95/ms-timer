@@ -29,9 +29,9 @@ export function initTheme() {
 
   window.addEventListener('keydown', (e) => {
     if (e.key !== 't' && e.key !== 'T') return;
-    // 목표 시각 입력 중에는 테마를 바꾸지 않는다 — 입력칸에서 T 를 치면
-    // 글자는 안 들어가는데(숫자만 허용) 테마만 바뀌는 것을 막는다.
-    if (e.target instanceof HTMLInputElement) return;
+    // 목표 시각 편집기가 열려 있는 동안에는 이 핸들러까지 이벤트가 오지 않는다 —
+    // target-editor.js 가 편집기 컨테이너에서 keydown 전파를 막기 때문이다.
+    // theme.js 는 편집기의 존재나 DOM 구조를 알 필요가 없다.
     current = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
     document.documentElement.dataset.theme = current;
     writeTheme(current);
