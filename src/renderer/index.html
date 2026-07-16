@@ -10,17 +10,27 @@
     <main id="clock" class="clock">
       <div class="stack">
         <header class="header">
-          <h1 id="title" class="title">퇴근까지</h1>
+          <div class="titlebox" id="titlebox">
+            <h1 class="title-wrap" data-label-display>
+              <button id="title" class="title" type="button" data-label-trigger>퇴근까지</button>
+            </h1>
+            <div class="label-edit" data-label-edit hidden>
+              <input class="label-input" type="text" maxlength="12" aria-label="진행 문구" placeholder="진행 문구" data-l10n="ariaLabelRun" data-label-run />
+              <input class="label-input" type="text" maxlength="12" aria-label="완료 문구" placeholder="완료 문구" data-l10n="ariaLabelDone" data-label-done />
+              <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-label-ok>✓</button>
+              <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-label-cancel>↻</button>
+            </div>
+          </div>
           <div class="target" id="target">
             <button class="target-display" type="button" data-target-display></button>
             <div class="target-edit" data-target-edit hidden>
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 십의 자리" data-cell />
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 일의 자리" data-cell />
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 십의 자리" data-l10n="ariaH10" data-cell />
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 일의 자리" data-l10n="ariaH1" data-cell />
               <span class="cell-sep">:</span>
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 십의 자리" data-cell />
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 일의 자리" data-cell />
-              <button class="target-btn" type="button" aria-label="확정" data-target-ok>✓</button>
-              <button class="target-btn" type="button" aria-label="취소" data-target-cancel>↻</button>
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 십의 자리" data-l10n="ariaM10" data-cell />
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 일의 자리" data-l10n="ariaM1" data-cell />
+              <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-target-ok>✓</button>
+              <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-target-cancel>↻</button>
             </div>
           </div>
         </header>

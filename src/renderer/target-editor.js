@@ -123,7 +123,7 @@ export function initTargetEditor(root, onChange) {
   // 같은 리스너에서 무조건 stopPropagation 하여, 편집기 내부의 모든 키 입력이
   // window(theme.js의 T 토글)까지 버블링되지 않도록 경계를 명확히 한다.
   edit.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') commit();
+    if (e.key === 'Enter' && e.target !== cancelBtn) commit(); // 취소 버튼 위에서 Enter 는 버튼의 기본 동작(클릭=취소)에 맡긴다 — 여기서 commit 하면 "취소가 저장"이 된다.
     else if (e.key === 'Escape') cancel();
     e.stopPropagation();
   });

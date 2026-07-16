@@ -1,7 +1,7 @@
 {
   "name": "ms-timer",
   "version": "1.0.0",
-  "description": "퇴근 시각까지 1ms 단위 카운트다운 플립 시계",
+  "description": "목표 시각까지 1ms 단위 카운트다운 플립 시계",
   "author": "jmchoi",
   "license": "MIT",
   "main": "src/main.js",
