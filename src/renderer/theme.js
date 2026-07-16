@@ -29,6 +29,9 @@ export function initTheme() {
 
   window.addEventListener('keydown', (e) => {
     if (e.key !== 't' && e.key !== 'T') return;
+    // 목표 시각 편집기가 열려 있는 동안에는 이 핸들러까지 이벤트가 오지 않는다 —
+    // target-editor.js 가 편집기 컨테이너에서 keydown 전파를 막기 때문이다.
+    // theme.js 는 편집기의 존재나 DOM 구조를 알 필요가 없다.
     current = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
     document.documentElement.dataset.theme = current;
     writeTheme(current);
