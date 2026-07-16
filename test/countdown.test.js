@@ -39,8 +39,8 @@ test('자릿수 혼합 — 08:07:06.005', () => {
     { expired: false, h: 9, m: 52, s: 53, ms: 995 });
 });
 
-test('targetHour 인자로 목표 시각 변경', () => {
-  assert.deepEqual(computeRemaining(at(17, 0, 0, 0), 19),
+test('target 인자로 목표 시각 변경', () => {
+  assert.deepEqual(computeRemaining(at(17, 0, 0, 0), { h: 19, m: 0 }),
     { expired: false, h: 2, m: 0, s: 0, ms: 0 });
 });
 
@@ -49,4 +49,34 @@ test('입력 Date를 변경하지 않는다 (순수 함수)', () => {
   const before = now.getTime();
   computeRemaining(now);
   assert.equal(now.getTime(), before);
+});
+
+test('분 단위 target — 09:00에서 16:30까지 7시간 30분', () => {
+  assert.deepEqual(computeRemaining(at(9, 0, 0, 0), { h: 16, m: 30 }),
+    { expired: false, h: 7, m: 30, s: 0, ms: 0 });
+});
+
+test('분 단위 target — 정각 1ms 전', () => {
+  assert.deepEqual(computeRemaining(at(16, 29, 59, 999), { h: 16, m: 30 }),
+    { expired: false, h: 0, m: 0, s: 0, ms: 1 });
+});
+
+test('분 단위 target — 정각은 expired', () => {
+  assert.deepEqual(computeRemaining(at(16, 30, 0, 0), { h: 16, m: 30 }),
+    { expired: true, h: 0, m: 0, s: 0, ms: 0 });
+});
+
+test('분 단위 target — 정각 1ms 후는 expired', () => {
+  assert.deepEqual(computeRemaining(at(16, 30, 0, 1), { h: 16, m: 30 }),
+    { expired: true, h: 0, m: 0, s: 0, ms: 0 });
+});
+
+test('target 인자 없으면 18:00 기본값', () => {
+  assert.deepEqual(computeRemaining(at(9, 0, 0, 0)),
+    computeRemaining(at(9, 0, 0, 0), { h: 18, m: 0 }));
+});
+
+test('자정 롤오버는 분 단위 target에서도 동작 — 00:00에서 16:30까지', () => {
+  assert.deepEqual(computeRemaining(at(0, 0, 0, 0), { h: 16, m: 30 }),
+    { expired: false, h: 16, m: 30, s: 0, ms: 0 });
 });
