@@ -10,6 +10,16 @@
   --card-radius: calc(var(--card-h) * 0.08);
   --digit-size: calc(var(--card-h) * 0.7);
   --gap: calc(var(--card-h) * 0.06);
+
+  /* 숫자를 카드 중앙에 광학적으로 맞추는 보정값.
+     line-height 정렬은 폰트의 em 박스를 중앙에 놓지만, 숫자는 baseline 위로만
+     잉크가 있고 descender 영역이 비어 있어 광학 중심이 박스 중심보다 아래에 온다.
+     그래서 50%의 절개선이 숫자를 중앙이 아니라 그보다 위에서 가른다.
+     선을 내리면 위/아래 조각 높이가 달라져 rotateX 플립이 비대칭이 되므로
+     선이 아니라 글자를 올린다.
+     Segoe UI + font-size 0.7×card-h 에서 실측 0.045×card-h (Electron 43).
+     폰트나 --digit-size 를 바꾸면 이 값을 다시 재야 한다. */
+  --digit-lift: calc(var(--card-h) * 0.045);
 }
 
 body {
@@ -174,6 +184,9 @@ body {
   font-size: var(--digit-size);
   font-weight: 600;
   color: var(--card-fg);
+  /* 네 조각(top/bottom/fold-top/fold-bottom) 모두 같은 양만큼 올려야
+     정지 상태와 플립 중의 숫자 위치가 어긋나지 않는다. */
+  transform: translateY(calc(var(--digit-lift) * -1));
 }
 
 .flip-top {
