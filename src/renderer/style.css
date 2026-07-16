@@ -81,6 +81,10 @@ body {
   justify-content: center;
 }
 
+.title-wrap[hidden] {
+  display: none;
+}
+
 /* target 편집기가 열린 동안만 제목을 더 조인다 — 실측 임계: 표시 모드 ≈244px(=card-h×5.08),
    편집기 열림 ≈155px(=card-h×3.23). 기본 max-width(×5)는 표시 모드만 방어하므로,
    편집기 열림이라는 짧은 순간에는 :has() 로 임계 아래까지 말줄임한다. 닫으면 온전히 복귀. */

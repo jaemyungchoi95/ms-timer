@@ -89,7 +89,7 @@ export function initLabelEditor(root, onChange) {
   // Enter/Escape 는 편집기 전역, 그리고 keydown 전파를 여기서 끊는다 —
   // target-editor 와 같은 계약: 편집 중 T/L 이 테마/언어를 바꾸지 못한다.
   edit.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') commit();
+    if (e.key === 'Enter' && e.target !== cancelBtn) commit(); // 취소 버튼 위에서 Enter 는 버튼의 기본 동작(클릭=취소)에 맡긴다 — 여기서 commit 하면 "취소가 저장"이 된다.
     else if (e.key === 'Escape') showDisplay();
     e.stopPropagation();
   });
