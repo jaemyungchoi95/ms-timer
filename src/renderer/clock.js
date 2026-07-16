@@ -6,6 +6,7 @@ import { initTheme } from './theme.js';
 import { initTargetEditor } from './target-editor.js';
 import { initLabelEditor } from './label-editor.js';
 import { initLang } from './lang.js';
+import { createExpiryTracker } from '../lib/expiry-tracker.js';
 
 const clockEl = document.getElementById('clock');
 const titleEl = document.getElementById('title');
@@ -22,7 +23,13 @@ const reels = [
 const pad2 = (n) => String(n).padStart(2, '0');
 
 let lastExpired = null;
-let target = initTargetEditor(targetEl, (next) => { target = next; });
+const tracker = createExpiryTracker();
+let target = initTargetEditor(targetEl, (next) => {
+  target = next;
+  // 커밋 순간 동기 재기준 — 다음 틱을 기다리면 17:59:59.995 에 커밋된
+  // 목표 변경이 18:00 의 전환을 삼키거나 오발화한다.
+  tracker.rebaseline(computeRemaining(new Date(), next).expired);
+});
 // onChange 콜백들은 사용자 입력에서만 불리므로(동기 초기화 중엔 안 불림) TDZ 안전 —
 // initTargetEditor 의 기존 패턴과 동일하다.
 let labels = initLabelEditor(titleboxEl, (next) => { labels = next; applyTitle(); });
@@ -50,6 +57,12 @@ function tick() {
   for (const reel of reels) {
     reel.update(ms);
   }
+
+  // tracker 는 lastExpired 를 절대 건드리지 않는다 — lastExpired 는 DOM
+  // (.expired 클래스/제목)의 소유자다. 섞으면 클래스 갱신이 멈춘다.
+  // ?. 는 preload 로드 실패 시의 유일한 쿠션 — 알림은 조용히 죽지만
+  // rAF 루프(제품)는 산다.
+  if (tracker.observe(expired)) window.msTimer?.alertExpired();
 
   if (expired !== lastExpired) {
     clockEl.classList.toggle('expired', expired);
