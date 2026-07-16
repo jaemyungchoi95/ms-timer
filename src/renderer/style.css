@@ -25,10 +25,44 @@ body {
 .clock {
   height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+/* 헤더와 프레임을 같은 폭으로 묶는다.
+   width: fit-content 는 .frame 의 max-content 폭으로 해소된다 —
+   .header 는 width: 100% 라 intrinsic 크기 계산에 기여하지 않는다. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
   gap: calc(var(--card-h) * 0.18);
+}
+
+/* 제목은 중앙, 목표 시각은 우측 절대 배치 —
+   목표 시각의 폭이 변해도 제목이 흔들리지 않는다. */
+.header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  width: 100%;
+}
+
+.title {
+  font-size: calc(var(--card-h) * 0.42);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--title-fg);
+}
+
+.target {
+  position: absolute;
+  right: calc(var(--card-h) * 0.16);
+  bottom: 0;
+  font-size: calc(var(--card-h) * 0.2);
+  font-weight: 600;
+  color: var(--title-fg);
 }
 
 .frame {
@@ -176,16 +210,10 @@ body {
   color: var(--accent);
 }
 
-.label {
-  font-size: calc(var(--card-h) * 0.15);
-  letter-spacing: 0.35em;
-  color: var(--label-fg);
-}
-
 .clock.expired .flip > div > span {
   color: var(--accent);
 }
 
-.clock.expired .label {
+.clock.expired .title {
   color: var(--accent);
 }

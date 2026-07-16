@@ -4,7 +4,7 @@ import { Reel } from './reel.js';
 import { initTheme } from './theme.js';
 
 const clockEl = document.getElementById('clock');
-const labelEl = document.getElementById('label');
+const titleEl = document.getElementById('title');
 const digits = [...document.querySelectorAll('[data-flip]')].map((el) => new FlipDigit(el));
 
 const reels = [
@@ -31,7 +31,7 @@ function tick() {
 
   if (expired !== lastExpired) {
     clockEl.classList.toggle('expired', expired);
-    labelEl.textContent = expired ? '퇴근' : '퇴근까지';
+    titleEl.textContent = expired ? '퇴근' : '퇴근까지';
     lastExpired = expired;
   }
 

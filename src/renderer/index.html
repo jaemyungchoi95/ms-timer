@@ -8,7 +8,12 @@
   </head>
   <body>
     <main id="clock" class="clock">
-      <div class="frame">
+      <div class="stack">
+        <header class="header">
+          <h1 id="title" class="title">퇴근까지</h1>
+          <div class="target" id="target"></div>
+        </header>
+        <div class="frame">
         <div class="flip" data-flip>
           <div class="flip-top"><span>0</span></div>
           <div class="flip-bottom"><span>0</span></div>
@@ -69,8 +74,8 @@
             <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span>
           </div>
         </div>
-      </div>
-      <div id="label" class="label">퇴근까지</div>
+      </div>      <!-- .frame -->
+      </div>        <!-- .stack -->
     </main>
     <script type="module" src="clock.js"></script>
   </body>

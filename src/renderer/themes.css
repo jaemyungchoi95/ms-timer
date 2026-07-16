@@ -8,7 +8,7 @@
   --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   --sep-fg: #3a3f46;
   --reel-fg: #6b7280;
-  --label-fg: #6b7280;
+  --title-fg: #f7f8f8;
   --accent: #4ade80;
 }
 
@@ -21,6 +21,7 @@
   --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   --sep-fg: #2c4a3e;
   --reel-fg: #2c4a3e;
-  --label-fg: #2c4a3e;
+  /* 흰색이면 민트 배경(#8fc4b2) 위에서 대비 1.9:1 로 안 보인다 */
+  --title-fg: #2c4a3e;
   --accent: #1f6b4a;
 }
