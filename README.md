@@ -1,6 +1,7 @@
 # ms-timer
 
-퇴근 시각까지 남은 시간을 1ms 단위로 표시하는 플립 시계.
+목표 시각까지 남은 시간을 1ms 단위로 표시하는 플립 시계.
+기본은 퇴근 카운트다운이지만, 이름을 바꿔 회의·마감 등 어떤 용도로든 쓴다.
 
 시:분:초는 플립 카드가 착착 넘어가고, ms 3자리는 읽을 수 없는 속도로 흐른다.
 
@@ -56,13 +57,17 @@ cmd.exe /c "npx electron-builder --win portable"   # exe 빌드 → dist/ms-time
 src/lib/          순수 함수 — 로직 전부, 테스트 전부, DOM 모름
   countdown.js      시간 계산
   target-time.js    목표 시각 파싱/포맷 — 검증 규칙은 여기에만 있다
+  label.js          이름 정규화 — 검증 규칙은 여기에만 있다
+  strings.js        언어별 문자열 — ko/en 키 대칭을 테스트가 고정한다
   reel-phase.js     릴 위상 계산
 src/renderer/     표현 계층 — 로직 없음, 테스트 없음
   flip-digit.js     카드 1장
   reel.js           릴 1개
-  theme.js          테마 토글
+  theme.js          테마 토글 (T)
+  lang.js           언어 토글 (L) — aria/placeholder/html[lang]
   target-editor.js  목표 시각 표시/편집 + localStorage
-  clock.js          조립 + rAF 루프
+  label-editor.js   이름 쌍 표시/편집 + localStorage
+  clock.js          조립 + rAF 루프 — 제목은 applyTitle 한 함수만 쓴다
 src/main.js       BrowserWindow 생성
 ```
 
