@@ -60,10 +60,67 @@ body {
 }
 
 .title {
+  font: inherit;
   font-size: calc(var(--card-h) * 0.42);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--title-fg);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  /* 긴 커스텀 이름 + target 편집기 열림의 코너 케이스 방어 — 실측 임계는 스펙 참조 */
+  max-width: calc(var(--card-h) * 5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+/* target 편집기가 열린 동안만 제목을 더 조인다 — 실측 임계: 표시 모드 ≈244px(=card-h×5.08),
+   편집기 열림 ≈155px(=card-h×3.23). 기본 max-width(×5)는 표시 모드만 방어하므로,
+   편집기 열림이라는 짧은 순간에는 :has() 로 임계 아래까지 말줄임한다. 닫으면 온전히 복귀. */
+.header:has(.target-edit:not([hidden])) .title {
+  max-width: calc(var(--card-h) * 3.1);
+}
+
+.label-edit {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--card-h) * 0.06);
+}
+
+.label-edit[hidden] {
+  display: none;
+}
+
+.label-input {
+  width: calc(var(--card-h) * 1.6);
+  height: calc(var(--card-h) * 0.34);
+  padding: 0 calc(var(--card-h) * 0.06);
+  font-family: inherit;
+  font-size: calc(var(--card-h) * 0.17);
+  font-weight: 600;
+  color: var(--input-fg);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: calc(var(--card-h) * 0.03);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.label-input:focus {
+  border-color: var(--title-fg);
+}
+
+.label-edit.invalid .label-input {
+  border-color: var(--input-border-invalid);
 }
 
 .target {
