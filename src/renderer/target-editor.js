@@ -97,6 +97,17 @@ export function initTargetEditor(root, onChange) {
     });
 
     cell.addEventListener('keydown', (e) => {
+      // 숫자 키는 선택 상태와 무관하게 그 칸을 덮어쓰고 다음 칸으로 이동한다.
+      // beforeinput/maxlength 경로에 맡기면, 이미 포커스된 칸을 캐럿이 collapse 된 채
+      // 재입력할 때(포커스 이동 없이 값이 있는 칸을 다시 타이핑) insertText 가
+      // maxlength=1 에 막혀 키 입력이 아무 피드백 없이 사라진다.
+      if (/^\d$/.test(e.key)) {
+        e.preventDefault();
+        cell.value = e.key;
+        validate();
+        if (i < cells.length - 1) cells[i + 1].focus();
+        return;
+      }
       if (e.key === 'Enter') { commit(); return; }
       if (e.key === 'Escape') { cancel(); return; }
       if (e.key === 'ArrowLeft' && i > 0) { cells[i - 1].focus(); e.preventDefault(); return; }
