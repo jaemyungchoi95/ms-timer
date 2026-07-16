@@ -29,6 +29,9 @@ export function initTheme() {
 
   window.addEventListener('keydown', (e) => {
     if (e.key !== 't' && e.key !== 'T') return;
+    // 목표 시각 입력 중에는 테마를 바꾸지 않는다 — 입력칸에서 T 를 치면
+    // 글자는 안 들어가는데(숫자만 허용) 테마만 바뀌는 것을 막는다.
+    if (e.target instanceof HTMLInputElement) return;
     current = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
     document.documentElement.dataset.theme = current;
     writeTheme(current);

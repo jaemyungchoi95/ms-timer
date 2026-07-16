@@ -11,7 +11,18 @@
       <div class="stack">
         <header class="header">
           <h1 id="title" class="title">퇴근까지</h1>
-          <div class="target" id="target"></div>
+          <div class="target" id="target">
+            <button class="target-display" type="button" data-target-display></button>
+            <div class="target-edit" data-target-edit hidden>
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 십의 자리" data-cell />
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 일의 자리" data-cell />
+              <span class="cell-sep">:</span>
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 십의 자리" data-cell />
+              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 일의 자리" data-cell />
+              <button class="target-btn" type="button" aria-label="확정" data-target-ok>✓</button>
+              <button class="target-btn" type="button" aria-label="취소" data-target-cancel>↻</button>
+            </div>
+          </div>
         </header>
         <div class="frame">
         <div class="flip" data-flip>

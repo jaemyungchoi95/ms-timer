@@ -65,6 +65,72 @@ body {
   color: var(--title-fg);
 }
 
+.target-display {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.target-edit {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--card-h) * 0.03);
+}
+
+/* [hidden] 의 UA display:none 은 위 display:flex 에 진다 — 명시적으로 이긴다 */
+.target-edit[hidden] {
+  display: none;
+}
+
+.cell {
+  width: calc(var(--card-h) * 0.19);
+  height: calc(var(--card-h) * 0.28);
+  text-align: center;
+  font-family: inherit;
+  font-size: calc(var(--card-h) * 0.17);
+  font-weight: 600;
+  color: var(--input-fg);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: calc(var(--card-h) * 0.03);
+  outline: none;
+  /* body 가 전역으로 user-select:none / cursor:default 라 입력칸만 되돌린다 */
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.cell:focus {
+  border-color: var(--title-fg);
+}
+
+.target-edit.invalid .cell {
+  border-color: var(--input-border-invalid);
+}
+
+.cell-sep {
+  padding: 0 calc(var(--card-h) * 0.01);
+}
+
+.target-btn {
+  font: inherit;
+  font-size: calc(var(--card-h) * 0.17);
+  line-height: 1;
+  color: var(--btn-fg);
+  background: none;
+  border: none;
+  padding: 0 calc(var(--card-h) * 0.03);
+  cursor: pointer;
+}
+
+.target-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .frame {
   display: flex;
   align-items: center;

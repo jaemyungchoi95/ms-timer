@@ -2,9 +2,11 @@ import { computeRemaining } from '../lib/countdown.js';
 import { FlipDigit } from './flip-digit.js';
 import { Reel } from './reel.js';
 import { initTheme } from './theme.js';
+import { initTargetEditor } from './target-editor.js';
 
 const clockEl = document.getElementById('clock');
 const titleEl = document.getElementById('title');
+const targetEl = document.getElementById('target');
 const digits = [...document.querySelectorAll('[data-flip]')].map((el) => new FlipDigit(el));
 
 const reels = [
@@ -16,9 +18,10 @@ const reels = [
 const pad2 = (n) => String(n).padStart(2, '0');
 
 let lastExpired = null;
+let target = initTargetEditor(targetEl, (next) => { target = next; });
 
 function tick() {
-  const { expired, h, m, s, ms } = computeRemaining(new Date());
+  const { expired, h, m, s, ms } = computeRemaining(new Date(), target);
 
   const chars = pad2(h) + pad2(m) + pad2(s);
   for (let i = 0; i < digits.length; i++) {
