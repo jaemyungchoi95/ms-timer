@@ -7,6 +7,8 @@ import { initTargetEditor } from './target-editor.js';
 import { initLabelEditor } from './label-editor.js';
 import { initLang } from './lang.js';
 import { createExpiryTracker } from '../lib/expiry-tracker.js';
+import { timerStateOf } from '../lib/timer-state.js';
+import { initPetToggle } from './pet-toggle.js';
 
 const clockEl = document.getElementById('clock');
 const titleEl = document.getElementById('title');
@@ -23,6 +25,7 @@ const reels = [
 const pad2 = (n) => String(n).padStart(2, '0');
 
 let lastExpired = null;
+let lastSentState = null;
 const tracker = createExpiryTracker();
 let target = initTargetEditor(targetEl, (next) => {
   target = next;
@@ -47,7 +50,8 @@ function applyTitle() {
 }
 
 function tick() {
-  const { expired, h, m, s, ms } = computeRemaining(new Date(), target);
+  const remaining = computeRemaining(new Date(), target);
+  const { expired, h, m, s, ms } = remaining;
 
   const chars = pad2(h) + pad2(m) + pad2(s);
   for (let i = 0; i < digits.length; i++) {
@@ -64,6 +68,13 @@ function tick() {
   // rAF 루프(제품)는 산다.
   if (tracker.observe(expired)) window.msTimer?.alertExpired();
 
+  // 레벨 채널 — 에지(팝업)와 달리 부팅 첫 틱의 전송이 정답이다 (spec §4).
+  const state = timerStateOf(remaining);
+  if (state !== lastSentState) {
+    lastSentState = state;
+    window.msTimer?.sendTimerState(state);
+  }
+
   if (expired !== lastExpired) {
     clockEl.classList.toggle('expired', expired);
     lastExpired = expired;
@@ -74,5 +85,6 @@ function tick() {
 }
 
 initTheme();
+initPetToggle();
 applyTitle();
 requestAnimationFrame(tick);

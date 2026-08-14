@@ -1,0 +1,22 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent; /* 투명 창 — 배경을 칠하면 사각형 유령이 보인다 */
+  overflow: hidden;
+}
+
+#cat {
+  /* 크기·위치는 pet-sprite.js 가 manifest(frameSize×scale)로 계산해 넣는다 */
+  position: absolute;
+  background-repeat: no-repeat;
+  image-rendering: pixelated; /* 픽셀아트 확대 — 안티앨리어싱 금지 */
+  cursor: grab;
+}
+
+/* 모션 최소화 — 애니메이션을 제거하면 첫 프레임 정적 표시로 동작한다 */
+@media (prefers-reduced-motion: reduce) {
+  #cat {
+    animation: none !important;
+  }
+}
