@@ -58,9 +58,13 @@ cat.addEventListener('mouseenter', () => {
   render();
 });
 cat.addEventListener('mouseleave', () => {
+  // 드래그 중 mouseleave 는 무시한다 — 창 이동이 커서를 뒤따라가는 구조라
+  // 빠른 드래그에서 커서가 순간적으로 고양이를 벗어나며 실제로 발화하는데
+  // (pointer capture 는 mouse 경계 이벤트를 억제하지 않는다), 여기서
+  // interacting 을 끄면 hover 행이 깜빡인다. 종료 처리는 pointerup 재판정 소관.
+  if (dragging) return;
   interacting = false;
-  // 드래그 중 이탈은 통과를 켜면 안 된다 — pointerup 재판정이 처리 (spec §3)
-  if (!dragging) window.petBridge?.setClickThrough(true);
+  window.petBridge?.setClickThrough(true);
   render();
 });
 
