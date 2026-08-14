@@ -88,7 +88,54 @@ assets-src/
    정렬 → `cat-sheet.png` + `cat-manifest.js` 재생성 → 테스트 → 앱에서 확인.
 3. 실패 시(격자 어긋남·일관성 붕괴 등) 문제 프레임 목록을 리포트한다 — 해당 프레임만 재생성하면 된다.
 
-## 7. 하지 않아도 되는 것
+## 7. Nano Banana (Gemini 이미지 생성) 프롬프트 키트
+
+### 7.1 기준 컷 — 만족할 때까지 이것만 반복
+
+```
+A cute orange tabby kitten mascot, chibi proportions with a big round head,
+huge glossy dark eyes with white sparkle highlights, small pink nose, white
+muzzle and chest, pink inner ears, soft pink blush on cheeks, red collar with
+a tiny gold charm, sitting front view, full body, feet at the bottom, centered.
+Retro video game pixel art style: clean visible pixel grid, hard edges, no
+anti-aliasing, 3-tone cel shading with light from the top-left, dark brown
+outline (#2B1E16). Palette: warm orange #EF9E5E, dark orange #C9713A, stripe
+brown #A8542A, cream #F7EFE2, pink #E4808C.
+Flat solid magenta background (#FF00FF), no floor, no shadow, no text.
+```
+
+### 7.2 상태별 시트 — 기준 컷 첨부 + [ACTION] 교체
+
+```
+Using the attached reference image: the EXACT same orange tabby kitten
+character — same ear shape, same stripe positions, same collar, same palette,
+same pixel art style. Create a sprite sheet of 6 animation frames in a single
+horizontal row, evenly spaced, all frames the same size, feet baseline at the
+same height in every frame. Animation: [ACTION]. Seamless loop — the last
+frame leads back into the first. Flat solid magenta background (#FF00FF),
+no floor, no shadows, no text, no frame borders.
+```
+
+| 상태 | [ACTION] |
+|------|----------|
+| dawn | sleeping curled in a loaf position, eyes closed, body gently rising and falling with slow breathing, small blue "zzz" floating above |
+| morning | waking up and stretching — front legs extended, butt raised, then grooming a front paw |
+| day | playful idle — tail swishing side to side with an occasional small bounce |
+| evening | sitting and gazing to the right as if looking out a window, blinking slowly once |
+| night | drowsy — eyes drooping half-closed, head nodding, then blinking back awake |
+| imminent | excited anticipation — wide sparkling eyes, bouncing lightly in place, small yellow sparkles around |
+| expired | joyful celebration — jumping up with paws spread, confetti sparkles, big happy smile |
+| hover | surprised delight — perked ears, starry eyes, a little hop |
+
+### 7.3 실패 모드별 대응
+
+- 프레임 개수가 6이 아니어도 그대로 납품 (§2 — 상태별 가변 허용, 크롭은 어셈블러 몫).
+- 뭉개진 픽셀 → `make it true pixel art with a clean uniform pixel grid, no smoothing, no blur` 추가.
+- 배경 오류 → 후속 편집 지시: `replace the background with flat solid magenta #FF00FF, nothing else`.
+- 캐릭터 변형 → 재생성 대신 `keep the character IDENTICAL to the reference — only change the pose`.
+- 잘 나온 상태부터 부분 납품 (`assets-src/dawn_sheet.png` 등) — 행 단위 혼합 지원.
+
+## 8. 하지 않아도 되는 것
 
 - 리사이즈/최적화 — 어셈블러가 처리.
 - 시트 패킹(Form 1 선택 시) — 어셈블러가 처리.
