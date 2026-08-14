@@ -7,11 +7,8 @@ body {
 }
 
 #cat {
+  /* 크기·위치는 pet-sprite.js 가 manifest(frameSize×scale)로 계산해 넣는다 */
   position: absolute;
-  left: 16px;
-  top: 16px;
-  width: 128px; /* frameSize 32 × scale 4 */
-  height: 128px;
   background-repeat: no-repeat;
   image-rendering: pixelated; /* 픽셀아트 확대 — 안티앨리어싱 금지 */
   cursor: grab;

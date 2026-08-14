@@ -30,7 +30,7 @@ ms-timer에 시간대별로 행동이 바뀌고 타이머 상태(임박/만료)�
 
 ```js
 {
-  width: 160, height: 160,            // 고정. 스프라이트 128px 렌더 + 사방 16px 여백
+  width: 160, height: 160,            // 고정. 스프라이트 96px 렌더 + 여백 (중앙 배치)
   transparent: true, frame: false,
   alwaysOnTop: true, skipTaskbar: true,
   resizable: false, focusable: false, // 클릭해도 포커스 탈취 없음
@@ -89,32 +89,32 @@ selectPetAnimation: interacting > expired > imminent > daypart
 
 ### 시트 기하
 
-- 프레임 32×32px, **4열 × 8행 = 128×256 PNG** 1장: `src/renderer/assets/cat-sheet.png`
+- 프레임 32×32px, **6열 × 8행 = 192×256 PNG** 1장: `src/renderer/assets/cat-sheet.png` (v2 — 초기 4열에서 확장)
 - 행 순서(불변 계약): `dawn(0) morning(1) day(2) evening(3) night(4) imminent(5) expired(6) hover(7)`
-- 렌더 스케일 4배 → 128×128, `image-rendering: pixelated`, 창 내 중앙 배치.
+- 렌더 스케일 3배 → 96×96 (Claudino급 체구), `image-rendering: pixelated`, 창 내 중앙 배치. 크기·배치는 pet-sprite.js가 manifest에서 계산 (CSS 하드코딩 없음).
 - 긴 홀드는 열 중복으로 표현 (가변 프레임 지속시간 없음 — 시트를 우리가 생성하므로 Orca의 step-end 가변 페이싱은 불필요, YAGNI).
 
 ### manifest — `src/renderer/cat-manifest.js` (생성 파일)
 
 ```js
 export const CAT_MANIFEST = {
-  frameSize: 32, columns: 4, sheetWidth: 128, sheetHeight: 256, scale: 4,
+  frameSize: 32, columns: 6, sheetWidth: 192, sheetHeight: 256, scale: 3,
   rows: {
-    dawn:     { row: 0, frames: 4, fps: 2 },
-    morning:  { row: 1, frames: 4, fps: 4 },
-    day:      { row: 2, frames: 4, fps: 6 },
-    evening:  { row: 3, frames: 4, fps: 3 },
-    night:    { row: 4, frames: 4, fps: 2 },
-    imminent: { row: 5, frames: 4, fps: 6 },
-    expired:  { row: 6, frames: 4, fps: 8 },
-    hover:    { row: 7, frames: 4, fps: 8 },
+    dawn:     { row: 0, frames: 6, fps: 3 },
+    morning:  { row: 1, frames: 6, fps: 5 },
+    day:      { row: 2, frames: 6, fps: 7 },
+    evening:  { row: 3, frames: 6, fps: 4 },
+    night:    { row: 4, frames: 6, fps: 3 },
+    imminent: { row: 5, frames: 6, fps: 8 },
+    expired:  { row: 6, frames: 6, fps: 10 },
+    hover:    { row: 7, frames: 6, fps: 10 },
   },
 };
 ```
 
 ### 생성 도구 — `tools/generate-cat-sheet.mjs`
 
-- 의존성 제로 node 스크립트. 프레임 = 문자 그리드(`'.'`=투명, 문자=팔레트 색) — 코드 리뷰·수정 가능한 픽셀 정의.
+- 의존성 제로 node 스크립트. v2: 32px 네이티브 — 타원 채움 + 좌상단 광원 3톤 셰이딩 + 자동 외곽선 추출로 몸체를 절차 조립하고, 눈·코·목걸이 등 디테일은 문자 그리드 스탬프(`'.'`=투명)로 얹는다. 코드 리뷰·수정 가능한 픽셀 정의.
 - node:zlib deflate로 최소 PNG 인코더 직접 구현 (IHDR/IDAT/IEND, RGBA, filter 0).
 - `cat-sheet.png` + `cat-manifest.js` **동시 생성** — 기하 규격의 single source of truth. 산출물은 커밋한다 (빌드 파이프라인 불변).
 - **컨셉 튜닝 계약**: 행동 연출·팔레트·fps 조정은 생성기 수정 + 재실행만으로 완결된다. 8행 순서 계약을 유지하는 한 앱 코드는 불변 — 초기 구현의 연출은 1차 시안이며 이후 반복 조정을 전제로 한다.
