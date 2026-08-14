@@ -13,9 +13,10 @@ test('row 인덱스는 0..7 연속 무중복 — 시트 기하와 어긋나면 �
   assert.deepEqual(rows, [0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
-test('모든 행은 columns 개수의 프레임과 양수 fps 를 가진다', () => {
+test('모든 행의 프레임 수는 1..columns 범위이고 fps 는 양수다', () => {
+  // 외부 에셋 행은 프레임 수가 가변이다 (spec §6 행 단위 혼합) — columns 는 상한.
   for (const [name, def] of Object.entries(CAT_MANIFEST.rows)) {
-    assert.equal(def.frames, CAT_MANIFEST.columns, `${name} frames`);
+    assert.ok(def.frames >= 1 && def.frames <= CAT_MANIFEST.columns, `${name} frames`);
     assert.ok(def.fps > 0, `${name} fps`);
   }
 });

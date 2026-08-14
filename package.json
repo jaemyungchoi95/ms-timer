@@ -10,7 +10,8 @@
     "test": "node --test",
     "start": "electron .",
     "build": "electron-builder --win portable",
-    "gen:sprites": "node tools/generate-cat-sheet.mjs"
+    "gen:sprites": "node tools/generate-cat-sheet.mjs",
+    "assemble:sprites": "npm run gen:sprites && uv run --with pillow python tools/assemble_cat_sheet.py"
   },
   "devDependencies": {
     "electron": "^43.0.0",
