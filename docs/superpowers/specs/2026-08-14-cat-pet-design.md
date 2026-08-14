@@ -19,6 +19,7 @@ ms-timer에 시간대별로 행동이 바뀌고 타이머 상태(임박/만료)�
 | 에셋 | 코드 생성 픽셀아트 sprite sheet PNG 1장 (행=행동, 열=프레임, Orca 질감) |
 | 인터랙션 | 드래그 이동(위치 영속) + 호버 반응. 고양이 영역 외 클릭 통과 |
 | 토글 | 타이머 창 P키, localStorage 영속화, 기본 ON |
+| 투명도 | 고양이 위 마우스 휠로 opacity 조절, [0.3, 1.0] step 0.1, 기본 1.0, localStorage 영속 |
 | 상태 배선 | 타이머 renderer → IPC 레벨 전송 → main relay → pet 창. daypart는 pet 자체 계산 |
 
 비목표(out of scope): 사운드, 다중 pet, 커스텀 에셋 업로드, 트레이 아이콘, 타이머 창 테마 연동, Tauri 이식(별도 트랙).
@@ -116,6 +117,7 @@ export const CAT_MANIFEST = {
 - 의존성 제로 node 스크립트. 프레임 = 문자 그리드(`'.'`=투명, 문자=팔레트 색) — 코드 리뷰·수정 가능한 픽셀 정의.
 - node:zlib deflate로 최소 PNG 인코더 직접 구현 (IHDR/IDAT/IEND, RGBA, filter 0).
 - `cat-sheet.png` + `cat-manifest.js` **동시 생성** — 기하 규격의 single source of truth. 산출물은 커밋한다 (빌드 파이프라인 불변).
+- **컨셉 튜닝 계약**: 행동 연출·팔레트·fps 조정은 생성기 수정 + 재실행만으로 완결된다. 8행 순서 계약을 유지하는 한 앱 코드는 불변 — 초기 구현의 연출은 1차 시안이며 이후 반복 조정을 전제로 한다.
 - `package.json` scripts: `"gen:sprites": "node tools/generate-cat-sheet.mjs"`.
 
 ### 렌더링 — `sprite-css.js` (순수) + `pet-sprite.js` (DOM)
@@ -141,6 +143,14 @@ export const CAT_MANIFEST = {
 - `pointermove` (캡처 중) → `next = round(startPos + (screen - startScreen))` → `currentPos = next` → `pet:set-position` 전송. **드래그 중 clamp 없음** — 가장자리에 반쯤 걸치는 배치 허용
 - `pointerup` → 캡처 해제, `currentPos`를 localStorage 저장, `elementFromPoint`로 cat 위 여부 재판정 → 클릭 통과 복구 여부 결정
 - 좌표는 Electron DIP 기준 (renderer `screenX/Y` ↔ `win.setPosition` 동일 좌표계). 혼합 DPI 멀티모니터에서 드래그 중 미세 오차 가능 — 허용 (다음 드래그에서 자연 보정 없음이지만 실사용 무해)
+
+### Opacity 조절
+
+- cat 요소 `wheel` 이벤트 — 호버 중에만 도달한다 (클릭 통과 해제 상태이므로). `deltaY < 0` → +0.1, `deltaY > 0` → −0.1.
+- `src/lib/pet-opacity.js` — `adjustOpacity(current, direction)` 순수 함수 + `OPACITY_MIN(0.3)/MAX(1.0)/STEP(0.1)` 상수. clamp + 소수 1자리 반올림 (0.3+0.1 체인의 부동소수 누적 방지).
+- 적용은 cat 요소 CSS `opacity` — 창은 이미 transparent라 시각 효과 동일, `setOpacity` IPC 불필요 (renderer 소유).
+- localStorage `'ms-timer:pet-opacity'` 영속, 기본 1.0, 부팅 시 적용. 파싱 실패/범위 밖 값은 1.0 폴백.
+- 호버 중 휠은 pet이 소비한다 (하부 창 스크롤로 전달되지 않음) — 의도된 동작.
 
 ### restore clamp (main, 부팅 시에만)
 
@@ -176,6 +186,7 @@ export const CAT_MANIFEST = {
 - `pet-state.test.js` — 우선순위 매트릭스 전수 (interacting × 3레벨 × 5daypart)
 - `sprite-css.test.js` — keyframes 문자열의 row offset/end 좌표 수식, steps 수, frames=0/fps=0 가드
 - `cat-sheet.test.js` — 생성물 검증: PNG IHDR 치수 == manifest 계산값(128×256), manifest 행 세트 == pet-state가 반환 가능한 row 이름 전체와 일치
+- `pet-opacity.test.js` — clamp 상·하한, step 반올림 (0.3에서 +0.1 연쇄 시 부동소수 드리프트 없음), 범위 밖 입력 폴백
 
 ### 수동 체크리스트 (spec §9와 함께 PR 본문에 첨부)
 
@@ -187,6 +198,7 @@ export const CAT_MANIFEST = {
 6. 목표 10분 전 임박, 도달 시 축하 + 기존 팝업 공존
 7. 만료 중 pet 켜기 → 즉시 축하
 8. 창 숨김/최소화 시 애니메이션 정지 (작업 관리자 GPU 사용량)
+9. 고양이 위 휠로 opacity 조절 (0.3 하한·1.0 상한 멈춤) + 재시작 시 유지
 
 ### 구현 후 리뷰
 
@@ -194,7 +206,7 @@ fresh-context 리뷰어 1개에 **diff + 이 spec만** 전달 (빌더 대화 배
 
 ## 11. 파일 인벤토리
 
-**신규 (18)**
+**신규 (20)**
 
 | 파일 | 책임 |
 |------|------|
@@ -202,6 +214,7 @@ fresh-context 리뷰어 1개에 **diff + 이 spec만** 전달 (빌더 대화 배
 | `src/lib/timer-state.js` | remaining→레벨 순수 함수, IMMINENT_MS |
 | `src/lib/pet-state.js` | 상태→row 이름 선택 순수 함수 |
 | `src/lib/sprite-css.js` | manifest→CSS 문자열 순수 함수 |
+| `src/lib/pet-opacity.js` | opacity 조절 순수 함수 + 상수 |
 | `src/pet-preload.cjs` | pet 창 contextBridge (역방향 리스너 방어 포함) |
 | `src/renderer/pet.html` / `pet.css` / `pet.js` | pet 창 문서/스타일/composition root |
 | `src/renderer/pet-sprite.js` | DOM측 sprite 적용·정지 정책 |
@@ -209,7 +222,7 @@ fresh-context 리뷰어 1개에 **diff + 이 spec만** 전달 (빌더 대화 배
 | `src/renderer/cat-manifest.js` | 생성된 시트 manifest |
 | `src/renderer/assets/cat-sheet.png` | 생성된 sprite sheet |
 | `tools/generate-cat-sheet.mjs` | 시트+manifest 생성기 (의존성 제로) |
-| `test/daypart.test.js` 외 4 | §10 단위 테스트 |
+| `test/daypart.test.js` 외 5 | §10 단위 테스트 |
 
 **수정 (4)**
 
