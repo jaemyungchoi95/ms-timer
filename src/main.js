@@ -74,6 +74,13 @@ const PET_MARGIN = 16;
 const PET_MIN_VISIBLE = 24;
 
 let petWin = null;
+/**
+ * topmost 재단언 타이머 — Windows 에서 Win+D·전체화면 앱·일부 런처가
+ * TOPMOST 플래그를 벗기면 pet 이 바탕화면 뒤로 가라앉는다. 생성 시 1회로는
+ * 부족해서 주기적으로 재설정한다 (이미 최상단이면 사실상 no-op).
+ */
+let petTopmostTimer = null;
+const PET_TOPMOST_REASSERT_MS = 10_000;
 /** 레벨 캐시 — pet 이 나중에 켜져도(만료 후 P) 현재 상태를 즉시 받는다. */
 let lastTimerState = 'running';
 const TIMER_STATES = new Set(['running', 'imminent', 'expired']);
@@ -98,7 +105,15 @@ function clampRestoredPosition(pos) {
   return null;
 }
 
+function stopPetTopmostTimer() {
+  if (petTopmostTimer !== null) {
+    clearInterval(petTopmostTimer);
+    petTopmostTimer = null;
+  }
+}
+
 function destroyPet() {
+  stopPetTopmostTimer();
   if (petWin !== null && !petWin.isDestroyed()) petWin.destroy();
   petWin = null;
 }
@@ -146,8 +161,15 @@ function createPet() {
   w.webContents.on('render-process-gone', gone);
   w.webContents.on('did-fail-load', gone);
   w.on('closed', () => {
-    if (petWin === w) petWin = null;
+    if (petWin === w) {
+      petWin = null;
+      stopPetTopmostTimer();
+    }
   });
+
+  petTopmostTimer = setInterval(() => {
+    if (petWin === w && !w.isDestroyed()) w.setAlwaysOnTop(true, 'screen-saver');
+  }, PET_TOPMOST_REASSERT_MS);
 
   w.loadFile(path.join(import.meta.dirname, 'renderer/pet.html'));
 }
@@ -249,6 +271,8 @@ ipcMain.on('pet:restore-position', (_e, pos) => {
   petWin.setPosition(applied.x, applied.y);
   petWin.webContents.send('pet:position', applied); // 드래그 기준점 echo — spec §4
   petWin.showInactive();
+  // showInactive 직후 topmost 가 안 먹는 케이스(비활성 표시 + 무포커스 창) 방어
+  petWin.setAlwaysOnTop(true, 'screen-saver');
 });
 
 ipcMain.on('pet:set-position', (_e, pos) => {
