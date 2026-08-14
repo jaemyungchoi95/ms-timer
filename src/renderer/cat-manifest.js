@@ -12,8 +12,8 @@ export const CAT_MANIFEST = {
     day: { row: 2, frames: 4, fps: 7 },
     evening: { row: 3, frames: 4, fps: 4 },
     night: { row: 4, frames: 4, fps: 3 },
-    imminent: { row: 5, frames: 4, fps: 8 },
+    imminent: { row: 5, frames: 4, fps: 4 },
     expired: { row: 6, frames: 4, fps: 10 },
-    hover: { row: 7, frames: 4, fps: 10 },
+    hover: { row: 7, frames: 4, fps: 5 },
   },
 };

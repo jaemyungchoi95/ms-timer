@@ -362,9 +362,9 @@ const ROWS = [
   ['day', 7, ['sit', 'sit_tail_up', 'sit_bounce', 'sit_tail_side', 'sit', 'sit_tail_up']],
   ['evening', 4, ['sit_look', 'sit_look', 'sit_look', 'sit_look_blink', 'sit_look', 'sit_look']],
   ['night', 3, ['sit', 'sit_droop', 'sit_droop', 'sit_blink', 'sit_droop', 'sit_droop']],
-  ['imminent', 8, ['sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b']],
+  ['imminent', 4, ['sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b']],
   ['expired', 10, ['sit', 'jump_low', 'jump_high', 'jump_high', 'jump_low', 'sit']],
-  ['hover', 10, ['sparkle_a', 'jump_low', 'sparkle_b', 'sit', 'sparkle_a', 'jump_low']],
+  ['hover', 5, ['sparkle_a', 'jump_low', 'sparkle_b', 'sit', 'sparkle_a', 'jump_low']],
 ];
 
 // ---- 그리드 검증 + 래스터화 ------------------------------------------------

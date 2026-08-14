@@ -35,9 +35,9 @@ ROWS = [
     ("day", 7),
     ("evening", 4),
     ("night", 3),
-    ("imminent", 8),
+    ("imminent", 4),
     ("expired", 10),
-    ("hover", 10),
+    ("hover", 5),
 ]
 
 MIN_BODY_AREA_RATIO = 0.01   # 시트 면적 대비 본체 최소 크기
