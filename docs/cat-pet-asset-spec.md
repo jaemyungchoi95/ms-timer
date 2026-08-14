@@ -101,8 +101,12 @@ Retro video game pixel art style: clean visible pixel grid, hard edges, no
 anti-aliasing, 3-tone cel shading with light from the top-left, dark brown
 outline (#2B1E16). Palette: warm orange #EF9E5E, dark orange #C9713A, stripe
 brown #A8542A, cream #F7EFE2, pink #E4808C.
+Exactly ONE single kitten, no duplicates, no repetition. Square image, the
+character centered with generous empty magenta margin.
 Flat solid magenta background (#FF00FF), no floor, no shadow, no text.
 ```
+
+주의: "ONE single" 강제 문구는 **기준 컷에만** — 상태별 시트(7.2)에 넣으면 6프레임 생성과 충돌한다.
 
 ### 7.2 상태별 시트 — 기준 컷 첨부 + [ACTION] 교체
 
@@ -129,6 +133,11 @@ no floor, no shadows, no text, no frame borders.
 
 ### 7.3 실패 모드별 대응
 
+- 캐릭터가 여러 마리 겹쳐 나옴 (가로 캔버스를 반복으로 채우는 습성) → 잘 나온 개체가 있으면
+  재생성 대신 편집 지시: `Edit this image: keep ONLY the middle kitten and remove the
+  other two cats completely. Exactly one single character, centered, surrounded by flat
+  solid magenta (#FF00FF) on all sides. Do not change the kitten itself in any way.`
+- 시트에서 프레임이 겹침 → `frames separated by clear magenta gaps, not overlapping` 추가.
 - 프레임 개수가 6이 아니어도 그대로 납품 (§2 — 상태별 가변 허용, 크롭은 어셈블러 몫).
 - 뭉개진 픽셀 → `make it true pixel art with a clean uniform pixel grid, no smoothing, no blur` 추가.
 - 배경 오류 → 후속 편집 지시: `replace the background with flat solid magenta #FF00FF, nothing else`.
