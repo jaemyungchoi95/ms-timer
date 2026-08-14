@@ -30,13 +30,13 @@ MARGIN = 4          # 프레임 셀 안 여백 — 캐릭터가 셀 경계에 �
 
 # 행 순서 불변 계약 (spec §6) + fps. 코드 생성판과 동일해야 한다.
 ROWS = [
-    ("dawn", 3),
-    ("morning", 5),
-    ("day", 7),
-    ("evening", 4),
-    ("night", 3),
+    ("dawn", 2),
+    ("morning", 3),
+    ("day", 4),
+    ("evening", 3),
+    ("night", 2),
     ("imminent", 4),
-    ("expired", 10),
+    ("expired", 8),
     ("hover", 5),
 ]
 

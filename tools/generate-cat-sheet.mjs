@@ -357,13 +357,13 @@ const GRIDS = {
 // ---- 행 조립: [행이름, fps, 프레임 6개] — 순서가 곧 row 인덱스 (불변 계약) ----
 
 const ROWS = [
-  ['dawn', 3, ['sleep_1', 'sleep_1', 'sleep_2', 'sleep_3', 'sleep_3', 'sleep_2']],
-  ['morning', 5, ['sit', 'sit_blink', 'stretch', 'stretch', 'sit', 'sit_lick']],
-  ['day', 7, ['sit', 'sit_tail_up', 'sit_bounce', 'sit_tail_side', 'sit', 'sit_tail_up']],
-  ['evening', 4, ['sit_look', 'sit_look', 'sit_look', 'sit_look_blink', 'sit_look', 'sit_look']],
-  ['night', 3, ['sit', 'sit_droop', 'sit_droop', 'sit_blink', 'sit_droop', 'sit_droop']],
+  ['dawn', 2, ['sleep_1', 'sleep_1', 'sleep_2', 'sleep_3', 'sleep_3', 'sleep_2']],
+  ['morning', 3, ['sit', 'sit_blink', 'stretch', 'stretch', 'sit', 'sit_lick']],
+  ['day', 4, ['sit', 'sit_tail_up', 'sit_bounce', 'sit_tail_side', 'sit', 'sit_tail_up']],
+  ['evening', 3, ['sit_look', 'sit_look', 'sit_look', 'sit_look_blink', 'sit_look', 'sit_look']],
+  ['night', 2, ['sit', 'sit_droop', 'sit_droop', 'sit_blink', 'sit_droop', 'sit_droop']],
   ['imminent', 4, ['sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b', 'sparkle_a', 'sparkle_b']],
-  ['expired', 10, ['sit', 'jump_low', 'jump_high', 'jump_high', 'jump_low', 'sit']],
+  ['expired', 8, ['sit', 'jump_low', 'jump_high', 'jump_high', 'jump_low', 'sit']],
   ['hover', 5, ['sparkle_a', 'jump_low', 'sparkle_b', 'sit', 'sparkle_a', 'jump_low']],
 ];
 
