@@ -10,29 +10,19 @@
     <main id="clock" class="clock">
       <div class="stack">
         <header class="header">
-          <div class="titlebox" id="titlebox">
-            <h1 class="title-wrap" data-label-display>
-              <button id="title" class="title" type="button" data-label-trigger>퇴근까지</button>
-            </h1>
-            <div class="label-edit" data-label-edit hidden>
-              <input class="label-input" type="text" maxlength="12" aria-label="진행 문구" placeholder="진행 문구" data-l10n="ariaLabelRun" data-label-run />
-              <input class="label-input" type="text" maxlength="12" aria-label="완료 문구" placeholder="완료 문구" data-l10n="ariaLabelDone" data-label-done />
-              <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-label-ok>✓</button>
-              <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-label-cancel>↻</button>
+          <h1 class="title-wrap">
+            <img class="title-badge" alt="" data-title-badge hidden />
+            <button id="title" class="title" type="button">퇴근까지</button>
+          </h1>
+          <!-- 일정 모달 v2 — 행(경유지·Finish)은 schedule-editor.js 가 동적 생성 -->
+          <div class="sched-edit" data-sched-edit hidden>
+            <div class="sched-top">
+              <button class="sched-chrome" type="button" aria-label="저장" data-l10n="ariaSave" data-sched-ok><img src="assets/icons/save.png" alt="" /></button>
+              <button class="sched-chrome" type="button" aria-label="닫기" data-l10n="ariaClose" data-sched-cancel><img src="assets/icons/x.png" alt="" /></button>
             </div>
-          </div>
-          <div class="target" id="target">
-            <button class="target-display" type="button" data-target-display></button>
-            <!-- 일정 오버레이 패널 — 행(경유지·최종)은 schedule-editor.js 가 동적 생성 -->
-            <div class="sched-edit" data-sched-edit hidden>
-              <div class="sched-rows" data-sched-rows></div>
-              <div class="sched-presets" data-sched-presets></div>
-              <div class="sched-controls">
-                <button class="target-btn" type="button" aria-label="일정 추가" data-l10n="ariaAddWaypoint" data-sched-add>+</button>
-                <span class="sched-spacer"></span>
-                <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-sched-ok>✓</button>
-                <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-sched-cancel>↻</button>
-              </div>
+            <div class="sched-rows" data-sched-rows></div>
+            <div class="sched-bottom">
+              <button class="sched-chrome" type="button" aria-label="일정 추가" data-l10n="ariaAddWaypoint" data-sched-add><img src="assets/icons/clock-plus.png" alt="" /></button>
             </div>
           </div>
         </header>

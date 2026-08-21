@@ -182,10 +182,11 @@ function validPetPos(pos) {
 const POPUP_TEXT_MAX = 40;
 
 /**
- * text 는 renderer 가 결정한 팝업 문구 (경유지 이름/폴백 또는 완료 라벨).
- * null 이면 query 없이 로드 — popup.js 가 언어별 기본 문구로 폴백한다.
+ * text = renderer 가 결정한 팝업 문구, icon = 뱃지 키. null 이면 해당 query 생략 —
+ * popup.js 가 기본 문구/아이콘 없음으로 폴백한다. icon 값은 popup 쪽에서
+ * 화이트리스트 사전 조회로만 쓰이므로 여기선 형태 검증만 한다.
  */
-function openPopup(text) {
+function openPopup(text, icon) {
   // replace-not-stack: 재발화(시계 역행·절전 다중 통과) 시 겹겹이 쌓지 않는다 —
   // 다중 통과에서는 renderer 가 정렬 순서로 보내므로 가장 늦은 checkpoint 가 남는다
   destroyPopup();
@@ -251,17 +252,21 @@ function openPopup(text) {
     w.showInactive(); // 활성화를 요청하지 않는다 — Windows 의 거부에 기대지 않고 아예 안 묻는다
   });
 
+  const query = {};
+  if (text !== null) query.text = text;
+  if (icon !== null) query.icon = icon;
   w.loadFile(
     path.join(import.meta.dirname, 'renderer/popup.html'),
-    text === null ? undefined : { query: { text } },
+    Object.keys(query).length === 0 ? undefined : { query },
   );
 }
 
-ipcMain.on('ms-timer:expired', (_e, text) => {
+ipcMain.on('ms-timer:expired', (_e, text, icon) => {
   raiseMain();
-  // 검증 실패는 무페이로드 취급 — popup.js 가 기본 문구로 폴백한다
+  // 검증 실패는 해당 query 생략 취급 — popup.js 가 폴백한다
   openPopup(
     typeof text === 'string' && text.length > 0 && text.length <= POPUP_TEXT_MAX ? text : null,
+    typeof icon === 'string' && /^[a-z-]{1,16}$/.test(icon) ? icon : null,
   );
 });
 

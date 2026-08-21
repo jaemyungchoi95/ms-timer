@@ -15,6 +15,8 @@
   --input-border-invalid: #ef4444;
   --btn-fg: #6b7280;
   --accent: #4ade80;
+  /* Lucide 흑색 스트로크 크롬 아이콘 — 다크 배경에서 반전 */
+  --chrome-filter: invert(0.9);
 }
 
 :root[data-theme="retro"] {
@@ -34,4 +36,6 @@
   --input-border-invalid: #c0392b;
   --btn-fg: #2c4a3e;
   --accent: #1f6b4a;
+  /* 밝은 민트 배경 — 흑색 스트로크 그대로 */
+  --chrome-filter: none;
 }

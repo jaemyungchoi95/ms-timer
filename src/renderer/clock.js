@@ -7,16 +7,14 @@ import { FlipDigit } from './flip-digit.js';
 import { Reel } from './reel.js';
 import { initTheme } from './theme.js';
 import { initScheduleEditor } from './schedule-editor.js';
-import { initLabelEditor } from './label-editor.js';
 import { initLang } from './lang.js';
 import { initPetToggle } from './pet-toggle.js';
+import { ICON_SRC } from './icons.js';
 
 const clockEl = document.getElementById('clock');
 const titleEl = document.getElementById('title');
-const titleboxEl = document.getElementById('titlebox');
-const targetEl = document.getElementById('target');
-// 헤더 시각 표시의 textContent 는 이 파일이 유일한 작성자다 — 편집기는 쓰지 않는다.
-const targetDisplayEl = targetEl.querySelector('[data-target-display]');
+const titleBadgeEl = document.querySelector('[data-title-badge]');
+const schedPanelEl = document.querySelector('[data-sched-edit]');
 const digits = [...document.querySelectorAll('[data-flip]')].map((el) => new FlipDigit(el));
 
 const reels = [
@@ -29,14 +27,15 @@ const pad2 = (n) => String(n).padStart(2, '0');
 
 let lastExpired = null;
 let lastSentState = null;
-let currentLeg = null; // 표시 중인 구간 — 제목·헤더 시각의 근거
+let currentLeg = null; // 표시 중인 구간 — 제목·헤더 뱃지의 근거
 let legKey = null;
 
-// onChange/getLang 콜백들은 사용자 입력에서만 불리므로(동기 초기화 중엔 안 불림)
-// TDZ 안전 — 기존 initTargetEditor 시절과 같은 패턴이다.
+// getLang/onChange 콜백들은 사용자 입력에서만 불리므로(동기 초기화 중엔 안 불림)
+// TDZ 안전 — 기존 관용 그대로.
 let lang = initLang((next) => { lang = next; applyTitle(); });
-let labels = initLabelEditor(titleboxEl, (next) => { labels = next; applyTitle(); });
-let schedule = initScheduleEditor(targetEl, {
+let schedule = initScheduleEditor({
+  trigger: titleEl, // 제목 클릭 → 일정 모달 (spec §5c-1, 라벨 편집기 계승)
+  panel: schedPanelEl,
   getLang: () => lang,
   onChange: (next) => {
     schedule = next;
@@ -44,32 +43,34 @@ let schedule = initScheduleEditor(targetEl, {
     // 커밋 순간 동기 재기준 — 다음 틱을 기다리면 17:59:59.995 에 커밋된
     // 일정 변경이 18:00 의 전환을 삼키거나 오발화한다.
     alarms.rebaseline(new Date());
+    applyTitle(); // Finish 문구가 바뀌었을 수 있다 — 구간 전환 없이도 갱신
   },
 });
 let alarms = createScheduleAlarms(schedule.waypoints, schedule.target);
 
 /**
  * 제목 문구를 쓰는 유일한 함수.
- * waypoint 구간: 경유지 이름 ?? 시각을 "{}까지" 템플릿에 — 커스텀 run 라벨보다 우선.
- * final 구간: 기존 그대로 — 커스텀 라벨 ?? 언어별 기본 문구.
+ * waypoint 구간: 표시 문구 as-is, '' 이면 "HH:MM까지" 템플릿 폴백.
+ * final 구간: Finish 표시/도달 문구 ?? 언어별 기본 (기존 run/done 시맨틱 계승).
  * document.title 도 함께 — 작업표시줄이 상태를 따라간다.
  */
 function applyTitle() {
   let text;
   if (currentLeg !== null && currentLeg.kind === 'waypoint') {
-    text = fill(STRINGS[lang].waypointUntil, currentLeg.name || formatTarget(currentLeg));
+    text = currentLeg.run || fill(STRINGS[lang].waypointUntil, formatTarget(currentLeg));
+  } else if (lastExpired === true) {
+    text = schedule.finish.done || STRINGS[lang].expired;
   } else {
-    const s = labels ?? { run: STRINGS[lang].countdown, done: STRINGS[lang].expired };
-    text = lastExpired === true ? s.done : s.run;
+    text = schedule.finish.run || STRINGS[lang].countdown;
   }
   titleEl.textContent = text;
   document.title = text;
 }
 
-/** 팝업 문구 — waypoint 는 이름 ?? 폴백 문구, final 은 완료 라벨 ?? 기본 문구. */
+/** 팝업 문구 — 도달 문구 ?? 폴백 (경유 waypointFallback / final expired 기본). */
 function alertText(cp) {
-  if (cp.kind === 'waypoint') return cp.name || STRINGS[lang].waypointFallback;
-  return labels?.done ?? STRINGS[lang].expired;
+  if (cp.kind === 'waypoint') return cp.done || STRINGS[lang].waypointFallback;
+  return schedule.finish.done || STRINGS[lang].expired;
 }
 
 function tick() {
@@ -91,7 +92,7 @@ function tick() {
   // 표시용 remaining 은 경유지가 지나는 프레임에 이미 다음 구간이라 에지가 없다.
   // ?. 는 preload 로드 실패 시의 유일한 쿠션 — 알림은 조용히 죽지만 rAF 루프는 산다.
   for (const cp of alarms.observe(now)) {
-    window.msTimer?.alertExpired(alertText(cp));
+    window.msTimer?.alertExpired(alertText(cp), cp.kind === 'waypoint' ? cp.icon : 'finish');
   }
 
   // 레벨 채널 — 에지(팝업)와 달리 부팅 첫 틱의 전송이 정답이다 (spec §4).
@@ -102,12 +103,13 @@ function tick() {
     window.msTimer?.sendTimerState(state);
   }
 
-  // 구간 전환(경유지 통과·일정 커밋·자정 롤오버) — 헤더 시각과 제목이 함께 따라간다.
-  const key = `${leg.kind}:${leg.h}:${leg.m}:${leg.name ?? ''}`;
+  // 구간 전환(경유지 통과·일정 커밋·자정 롤오버) — 제목과 헤더 뱃지가 함께 따라간다.
+  const key = `${leg.kind}:${leg.h}:${leg.m}:${leg.run ?? ''}:${leg.icon ?? ''}`;
   if (key !== legKey) {
     legKey = key;
     currentLeg = leg;
-    targetDisplayEl.textContent = formatTarget(leg);
+    titleBadgeEl.src = ICON_SRC[leg.kind === 'waypoint' ? leg.icon : 'finish'];
+    titleBadgeEl.hidden = false; // 첫 틱 전 깨진 이미지 방지 — src 확정 후 노출
     applyTitle();
   }
 

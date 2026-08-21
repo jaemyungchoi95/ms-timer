@@ -1,14 +1,22 @@
 import { formatTarget, parseTarget } from '../lib/target-time.js';
-import { MAX_WAYPOINTS, formatWaypoints, parseWaypoints } from '../lib/schedule.js';
-import { MAX_PRESETS, formatPresets, parsePresets, upsertPreset } from '../lib/presets.js';
+import {
+  DEFAULT_ICON,
+  MAX_WAYPOINTS,
+  WAYPOINT_ICONS,
+  formatWaypoints,
+  parseWaypoints,
+} from '../lib/schedule.js';
+import { normalizeLabel } from '../lib/label.js';
 import { STRINGS } from '../lib/strings.js';
+import { ICON_SRC } from './icons.js';
 
 const KEY_TARGET = 'ms-timer:target';
 const KEY_WAYPOINTS = 'ms-timer:waypoints';
-const KEY_PRESETS = 'ms-timer:waypoint-presets';
+const KEY_RUN = 'ms-timer:label-run';
+const KEY_DONE = 'ms-timer:label-done';
 const DEFAULT_TARGET = { h: 18, m: 0 };
 
-/** target-editor 시절과 동일한 저장 관용 — 실패 시 세션 전용으로 동작한다. */
+/** 저장 관용 — 실패 시 세션 전용으로 동작한다. */
 function readTarget() {
   try {
     return parseTarget(localStorage.getItem(KEY_TARGET)) ?? DEFAULT_TARGET;
@@ -25,17 +33,26 @@ function readWaypoints() {
   }
 }
 
-function readPresets() {
-  try {
-    return parsePresets(localStorage.getItem(KEY_PRESETS)) ?? [];
-  } catch {
-    return [];
-  }
+/**
+ * Finish 문구 쌍 — 기존 label-run/done 키를 계승한다 (spec §5c-2).
+ * both-valid 게이트는 폐지: 칸별 독립 `커스텀('' 아님) ?? 기본` 폴백이라
+ * 반쪽 커스텀이 정합한 상태다. '' = 기본 문구 사용.
+ */
+function readFinish() {
+  const read = (key) => {
+    try {
+      return normalizeLabel(localStorage.getItem(key)) ?? '';
+    } catch {
+      return '';
+    }
+  };
+  return { run: read(KEY_RUN), done: read(KEY_DONE) };
 }
 
 function write(key, value) {
   try {
-    localStorage.setItem(key, value);
+    if (value === '') localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
   } catch {
     // 영속화 불가 — 세션 전용으로 동작한다
   }
@@ -43,10 +60,7 @@ function write(key, value) {
 
 const minutesOf = (t) => t.h * 60 + t.m;
 
-/**
- * 4-cell 시각 입력 동작 — target-editor 의 셀 계약 그대로:
- * 포커스=전체선택, 숫자만, 숫자는 덮어쓰고 전진, 화살표 이동, 빈 칸 Backspace 후진.
- */
+/** 4-cell 시각 입력 동작 — 기존 셀 계약 그대로. */
 function wireCells(cells, onEdit) {
   cells.forEach((cell, i) => {
     cell.addEventListener('focus', () => cell.select());
@@ -79,26 +93,31 @@ function wireCells(cells, onEdit) {
 }
 
 /**
- * 일정(경유지 0..N + 최종) 표시/편집 오버레이 패널 + 프리셋 라이브러리.
- * 초기 {target, waypoints} 를 반환하고, 일괄 확정 시 onChange 를 호출한다.
- * 헤더 시각 표시([data-target-display])의 textContent 는 clock.js 소유 —
- * 여기서는 절대 쓰지 않는다 (구간 전환 갱신과 두 작성자가 되면 안 된다).
+ * 일정 모달 v2 (spec §5c) — 행 = [뱃지][HH:MM][표시 문구][도달 문구][✕],
+ * Finish 행은 뱃지 고정·✕ 없음이며 두 문구 칸이 기존 진행/완료 라벨을 계승한다.
+ * 저장 = 일괄 커밋 + 닫힘, X/Esc = 폐기 + 닫힘. 새 행은 맨 위, 정렬은 저장 시점.
+ * 초기 {target, waypoints, finish} 를 반환하고 저장 시 onChange 를 호출한다.
  */
-export function initScheduleEditor(root, { getLang, onChange }) {
-  const display = root.querySelector('[data-target-display]');
-  const panel = root.querySelector('[data-sched-edit]');
-  const rowsEl = root.querySelector('[data-sched-rows]');
-  const presetsEl = root.querySelector('[data-sched-presets]');
-  const addBtn = root.querySelector('[data-sched-add]');
-  const okBtn = root.querySelector('[data-sched-ok]');
-  const cancelBtn = root.querySelector('[data-sched-cancel]');
+export function initScheduleEditor({ trigger, panel, getLang, onChange }) {
+  const rowsEl = panel.querySelector('[data-sched-rows]');
+  const saveBtn = panel.querySelector('[data-sched-ok]');
+  const closeBtn = panel.querySelector('[data-sched-cancel]');
+  const addBtn = panel.querySelector('[data-sched-add]');
 
-  let current = { target: readTarget(), waypoints: readWaypoints() };
-  let presets = readPresets();
+  let current = { target: readTarget(), waypoints: readWaypoints(), finish: readFinish() };
 
   const strings = () => STRINGS[getLang()];
   const waypointRows = () => [...rowsEl.querySelectorAll('.sched-row:not(.final)')];
   const finalRow = () => rowsEl.querySelector('.sched-row.final');
+
+  /** 열려 있는 뱃지 picker — 항상 1개 이하. */
+  let openPicker = null;
+  function closePicker() {
+    if (openPicker !== null) {
+      openPicker.remove();
+      openPicker = null;
+    }
+  }
 
   function makeCell(l10nKey) {
     const cell = document.createElement('input');
@@ -110,63 +129,96 @@ export function initScheduleEditor(root, { getLang, onChange }) {
     return cell;
   }
 
-  function makeBtn(className, text, l10nKey) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className;
-    btn.textContent = text;
-    btn.setAttribute('aria-label', strings()[l10nKey]);
-    return btn;
+  function makePhraseInput(value, phKey) {
+    const input = document.createElement('input');
+    input.className = 'label-input sched-phrase';
+    input.type = 'text';
+    input.maxLength = 12;
+    input.value = value;
+    input.setAttribute('aria-label', strings()[phKey]);
+    input.setAttribute('placeholder', strings()[phKey]);
+    return input;
   }
 
-  /** 행 1개 생성 — isFinal 이면 이름/☆/✕ 없이 최종 표식만 붙는다. */
-  function buildRow({ h, m, name }, isFinal) {
+  function buildPicker(row) {
+    const picker = document.createElement('div');
+    picker.className = 'icon-picker';
+    for (const key of WAYPOINT_ICONS) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'icon-pick';
+      btn.setAttribute('aria-label', key);
+      const img = document.createElement('img');
+      img.src = ICON_SRC[key];
+      img.alt = '';
+      btn.append(img);
+      btn.addEventListener('click', () => {
+        row.dataset.icon = key;
+        row.querySelector('.sched-badge img').src = ICON_SRC[key];
+        closePicker();
+      });
+      picker.append(btn);
+    }
+    return picker;
+  }
+
+  /** 행 1개 생성 — isFinal 이면 뱃지 FINISH 고정·✕ 없음. */
+  function buildRow(wp, isFinal) {
     const row = document.createElement('div');
     row.className = isFinal ? 'sched-row final' : 'sched-row';
+    row.dataset.icon = isFinal ? 'finish' : wp.icon;
 
-    // h/m 이 정수가 아니면(＋ 로 만든 빈 행) 네 칸 모두 빈 채로 시작한다.
-    const digits = Number.isInteger(h) ? formatTarget({ h, m }).replace(':', '') : '';
+    const badge = document.createElement('button');
+    badge.type = 'button';
+    badge.className = 'sched-badge';
+    badge.setAttribute('aria-label', strings().ariaPickIcon);
+    const badgeImg = document.createElement('img');
+    badgeImg.src = ICON_SRC[row.dataset.icon];
+    badgeImg.alt = isFinal ? strings().finalMark : '';
+    badge.append(badgeImg);
+    if (isFinal) {
+      badge.disabled = true; // FINISH 고정 — picker 없음
+    } else {
+      badge.addEventListener('click', () => {
+        const wasMine = openPicker !== null && openPicker.previousElementSibling === row;
+        closePicker();
+        if (wasMine) return; // 같은 뱃지 재클릭 = 토글 닫기
+        openPicker = buildPicker(row);
+        row.after(openPicker);
+      });
+    }
+    row.append(badge);
+
+    // h/m 이 정수가 아니면(clock-plus 로 만든 빈 행) 네 칸 모두 빈 채로 시작한다.
+    const digits = Number.isInteger(wp.h) ? formatTarget(wp).replace(':', '') : '';
     const cells = ['ariaH10', 'ariaH1', 'ariaM10', 'ariaM1'].map((key, i) => {
       const cell = makeCell(key);
       cell.value = digits[i] ?? '';
       return cell;
     });
     wireCells(cells, validate);
-
     row.append(cells[0], cells[1]);
     const sep = document.createElement('span');
     sep.className = 'cell-sep';
     sep.textContent = ':';
     row.append(sep, cells[2], cells[3]);
 
-    if (isFinal) {
-      const mark = document.createElement('span');
-      mark.className = 'final-mark';
-      mark.textContent = strings().finalMark;
-      row.append(mark);
-      return row;
+    row.append(makePhraseInput(wp.run, 'phRun'));
+    row.append(makePhraseInput(wp.done, 'phDone'));
+
+    if (!isFinal) {
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'target-btn';
+      removeBtn.textContent = '✕';
+      removeBtn.setAttribute('aria-label', strings().ariaRemoveWaypoint);
+      removeBtn.addEventListener('click', () => {
+        closePicker();
+        row.remove();
+        validate();
+      });
+      row.append(removeBtn);
     }
-
-    const nameInput = document.createElement('input');
-    nameInput.className = 'label-input sched-name';
-    nameInput.type = 'text';
-    nameInput.maxLength = 12;
-    nameInput.value = name;
-    nameInput.setAttribute('aria-label', strings().ariaWaypointName);
-    nameInput.setAttribute('placeholder', strings().ariaWaypointName);
-    nameInput.addEventListener('input', validate);
-    row.append(nameInput);
-
-    const starBtn = makeBtn('target-btn sched-star', '☆', 'ariaSavePreset');
-    starBtn.addEventListener('click', () => saveAsPreset(row));
-    row.append(starBtn);
-
-    const removeBtn = makeBtn('target-btn', '✕', 'ariaRemoveWaypoint');
-    removeBtn.addEventListener('click', () => {
-      row.remove();
-      validate();
-    });
-    row.append(removeBtn);
 
     return row;
   }
@@ -177,18 +229,14 @@ export function initScheduleEditor(root, { getLang, onChange }) {
     return parseTarget(`${d.slice(0, 2)}:${d.slice(2)}`);
   }
 
-  function rowName(row) {
-    return row.querySelector('.sched-name').value.trim();
-  }
-
-  function addRow(values) {
-    rowsEl.insertBefore(buildRow(values, false), finalRow());
-    validate();
+  function rowPhrases(row) {
+    const [run, done] = [...row.querySelectorAll('.sched-phrase')].map((el) => el.value.trim());
+    return { run, done };
   }
 
   /**
-   * live 검증 — 형식 / 경유지 < 최종 / 시각 중복. 위반 행에 invalid 클래스,
-   * 전체 유효할 때만 ✓ 활성. ☆·＋·칩의 활성 상태도 여기서 일괄 갱신한다.
+   * live 검증 — 형식 / 경유지 < 최종 / 시각 중복. 위반 행 invalid 클래스 +
+   * 저장 비활성. 정렬은 하지 않는다 — 재정렬·정규화는 저장 시점 (spec §5c-2).
    */
   function validate() {
     const rows = waypointRows();
@@ -196,7 +244,7 @@ export function initScheduleEditor(root, { getLang, onChange }) {
     const fTime = rowTime(fRow);
     fRow.classList.toggle('invalid', fTime === null);
 
-    const seen = new Map(); // minutes → 첫 행 (중복 시 둘 다 invalid)
+    const seen = new Map();
     let allValid = fTime !== null;
 
     for (const row of rows) {
@@ -214,110 +262,74 @@ export function initScheduleEditor(root, { getLang, onChange }) {
       }
       row.classList.toggle('invalid', bad);
       if (bad) allValid = false;
-
-      const name = rowName(row);
-      const starable = t !== null && name !== ''
-        && (presets.some((p) => p.name === name) || presets.length < MAX_PRESETS);
-      row.querySelector('.sched-star').disabled = !starable;
     }
 
-    okBtn.disabled = !allValid;
-    const full = rows.length >= MAX_WAYPOINTS;
-    addBtn.disabled = full;
-    for (const chip of presetsEl.querySelectorAll('.chip-insert')) chip.disabled = full;
+    saveBtn.disabled = !allValid;
+    addBtn.disabled = rows.length >= MAX_WAYPOINTS;
     return allValid ? { fTime, rows } : null;
   }
 
-  /** ☆ — 즉시 저장. 프리셋은 일정이 아니라 라이브러리라 ↻ 취소와 무관하게 남는다. */
-  function saveAsPreset(row) {
-    const t = rowTime(row);
-    const name = rowName(row);
-    if (t === null || name === '') return;
-    const next = upsertPreset(presets, { h: t.h, m: t.m, name });
-    if (next === null) return;
-    presets = next;
-    write(KEY_PRESETS, formatPresets(presets));
-    renderChips();
-    validate();
-  }
-
-  function renderChips() {
-    presetsEl.textContent = '';
-    for (const preset of presets) {
-      const chip = document.createElement('span');
-      chip.className = 'chip';
-
-      const insert = document.createElement('button');
-      insert.type = 'button';
-      insert.className = 'chip-insert';
-      insert.textContent = `${preset.name} ${formatTarget(preset)}`;
-      insert.setAttribute('aria-label', `${preset.name} ${formatTarget(preset)}`);
-      insert.addEventListener('click', () => {
-        if (waypointRows().length >= MAX_WAYPOINTS) return;
-        addRow(preset); // 복사 — 이후 프리셋을 지워도 행은 남는다
-      });
-      chip.append(insert);
-
-      const del = makeBtn('chip-x', '✕', 'ariaDeletePreset');
-      del.addEventListener('click', () => {
-        presets = presets.filter((p) => p.name !== preset.name);
-        write(KEY_PRESETS, formatPresets(presets));
-        renderChips();
-        validate();
-      });
-      chip.append(del);
-
-      presetsEl.append(chip);
-    }
-  }
-
-  function showDisplay() {
-    display.hidden = false;
-    panel.hidden = true;
-  }
-
   function showEdit() {
+    closePicker();
     rowsEl.textContent = '';
     for (const wp of current.waypoints) rowsEl.append(buildRow(wp, false));
-    rowsEl.append(buildRow({ h: current.target.h, m: current.target.m, name: '' }, true));
-    renderChips();
+    rowsEl.append(buildRow(
+      { h: current.target.h, m: current.target.m, run: current.finish.run, done: current.finish.done },
+      true,
+    ));
     validate();
-    display.hidden = true;
     panel.hidden = false;
     rowsEl.querySelector('.cell').focus();
   }
 
-  /** 일괄 확정 — 경유지 + 최종을 한 번에 저장·적용한다. */
+  function close() {
+    closePicker();
+    panel.hidden = true;
+  }
+
+  /** 저장 — 이 세션의 신규/수정/삭제 전부 일괄 커밋 + 닫힘. */
   function commit() {
     const result = validate();
     if (result === null) return;
     const waypoints = result.rows
       .map((row) => {
         const t = rowTime(row);
-        return { h: t.h, m: t.m, name: rowName(row) };
+        const { run, done } = rowPhrases(row);
+        return { h: t.h, m: t.m, run, done, icon: row.dataset.icon };
       })
       .sort((a, b) => minutesOf(a) - minutesOf(b));
-    current = { target: result.fTime, waypoints };
-    write(KEY_TARGET, formatTarget(current.target));
-    write(KEY_WAYPOINTS, formatWaypoints(current.waypoints));
+    const finish = rowPhrases(finalRow());
+    current = { target: result.fTime, waypoints, finish };
+    try {
+      localStorage.setItem(KEY_TARGET, formatTarget(current.target));
+      localStorage.setItem(KEY_WAYPOINTS, formatWaypoints(current.waypoints));
+    } catch {
+      // 영속화 불가 — 세션 전용으로 동작한다
+    }
+    write(KEY_RUN, finish.run);
+    write(KEY_DONE, finish.done);
     onChange(current);
-    showDisplay();
+    close();
   }
 
-  // Enter/Escape 는 패널 전역 관심사. 버튼 위의 Enter 는 그 버튼의 기본
-  // 동작(클릭)에 맡긴다 — 여기서 commit 하면 "취소/삭제가 저장"이 된다.
-  // 무조건 stopPropagation — 편집 중 키 입력이 T/L/P 토글로 새지 않는다.
+  // Enter/Escape 는 모달 전역 관심사. 버튼 위 Enter 는 그 버튼의 기본 동작(클릭)에
+  // 맡긴다 — 여기서 commit 하면 "닫기/삭제가 저장"이 된다. 무조건 stopPropagation —
+  // 편집 중 키 입력이 T/L/P 토글로 새지 않는다.
   panel.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) commit();
-    else if (e.key === 'Escape') showDisplay();
+    else if (e.key === 'Escape') close();
     e.stopPropagation();
   });
 
-  display.addEventListener('click', showEdit);
-  addBtn.addEventListener('click', () => addRow({ h: null, m: null, name: '' }));
-  okBtn.addEventListener('click', commit);
-  cancelBtn.addEventListener('click', showDisplay);
+  trigger.addEventListener('click', showEdit);
+  saveBtn.addEventListener('click', commit);
+  closeBtn.addEventListener('click', close);
+  addBtn.addEventListener('click', () => {
+    closePicker();
+    // 새 행은 맨 위 (spec §5c-2) — Finish 행은 항상 마지막이라 영향 없다
+    rowsEl.prepend(buildRow({ h: null, m: null, run: '', done: '', icon: DEFAULT_ICON }, false));
+    validate();
+  });
 
-  showDisplay();
   return current;
 }

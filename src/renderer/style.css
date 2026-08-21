@@ -88,14 +88,11 @@ body {
 /* 구 target 인라인 편집기의 제목 조임 규칙은 제거됐다 — 일정 패널은 absolute
    오버레이라 헤더 폭에 기여하지 않으므로 편집 중 제목이 밀릴 일이 없다. */
 
-.label-edit {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--card-h) * 0.06);
-}
-
-.label-edit[hidden] {
-  display: none;
+/* 헤더 뱃지 — 현재 구간의 아이콘. src 는 clock.js 가 구간 전환 시 갱신한다. */
+.title-badge {
+  height: calc(var(--card-h) * 0.3);
+  align-self: center;
+  margin-right: calc(var(--card-h) * 0.06);
 }
 
 .label-input {
@@ -119,52 +116,59 @@ body {
   border-color: var(--title-fg);
 }
 
-.label-edit.invalid .label-input {
-  border-color: var(--input-border-invalid);
-}
-
-.target {
-  position: absolute;
-  right: calc(var(--card-h) * 0.16);
-  bottom: 0;
-  font-size: calc(var(--card-h) * 0.2);
-  font-weight: 600;
-  color: var(--title-fg);
-}
-
-.target-display {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-/* 일정 오버레이 패널 — .target(absolute) 기준 우측 정렬로 헤더 아래에 펼쳐진다.
-   헤더 레이아웃에 기여하지 않으므로 열려도 제목이 밀리지 않는다. */
+/* 일정 모달 v2 — 창 중앙 고정 오버레이 (spec §5c). 헤더 레이아웃과 무관하다. */
 .sched-edit {
-  position: absolute;
-  top: calc(100% + var(--card-h) * 0.08);
-  right: 0;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--card-h) * 0.08);
-  padding: calc(var(--card-h) * 0.1);
+  gap: calc(var(--card-h) * 0.06);
+  padding: calc(var(--card-h) * 0.1) calc(var(--card-h) * 0.12);
   background: var(--frame-bg);
   border: 1px solid var(--input-border);
-  border-radius: calc(var(--card-h) * 0.08);
+  border-radius: calc(var(--card-h) * 0.12);
   box-shadow: var(--card-shadow);
-  /* 320px 창에서 행 7 + 칩 스트립이 넘칠 수 있다 — 패널 내부 스크롤 (spec §5b) */
-  max-height: min(65vh, calc(var(--card-h) * 2.6));
+  max-height: 86vh;
+  max-width: 94vw;
   overflow-y: auto;
-  width: max-content;
 }
 
 /* [hidden] 의 UA display:none 은 위 display:flex 에 진다 — 명시적으로 이긴다 */
 .sched-edit[hidden] {
   display: none;
+}
+
+.sched-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--card-h) * 0.05);
+}
+
+.sched-bottom {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 크롬 버튼(저장·닫기·일정추가) — Lucide 흑색 스트로크 PNG, 테마별 반전은 themes.css */
+.sched-chrome {
+  background: none;
+  border: none;
+  padding: calc(var(--card-h) * 0.02);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.sched-chrome:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sched-chrome img {
+  height: calc(var(--card-h) * 0.2);
+  filter: var(--chrome-filter);
 }
 
 .sched-rows {
@@ -180,76 +184,51 @@ body {
 }
 
 .sched-row.invalid .cell,
-.sched-row.invalid .sched-name {
+.sched-row.invalid .sched-phrase {
   border-color: var(--input-border-invalid);
 }
 
-.sched-name {
-  width: calc(var(--card-h) * 1.3);
-  height: calc(var(--card-h) * 0.28);
+.sched-badge {
+  background: none;
+  border: none;
+  padding: 0 calc(var(--card-h) * 0.02) 0 0;
+  cursor: pointer;
+  line-height: 0;
 }
 
-.final-mark {
-  font-size: calc(var(--card-h) * 0.13);
-  font-weight: 600;
-  color: var(--btn-fg);
-  padding-left: calc(var(--card-h) * 0.04);
+.sched-badge:disabled {
+  cursor: default; /* Finish 뱃지 — 고정이지만 흐려지진 않는다 */
 }
 
-.sched-presets {
+.sched-badge img {
+  height: calc(var(--card-h) * 0.26);
+}
+
+.sched-phrase {
+  width: calc(var(--card-h) * 1.45);
+}
+
+/* 뱃지 picker — 해당 행 바로 아래 가로 스트립, 항상 1개 이하 */
+.icon-picker {
   display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--card-h) * 0.04);
-  max-width: calc(var(--card-h) * 3.4);
-}
-
-.sched-presets:empty {
-  display: none;
-}
-
-.chip {
-  display: inline-flex;
   align-items: center;
+  gap: calc(var(--card-h) * 0.04);
+  padding: calc(var(--card-h) * 0.04);
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 999px;
-  padding: 0 calc(var(--card-h) * 0.03);
+  border-radius: calc(var(--card-h) * 0.06);
 }
 
-.chip-insert {
-  font: inherit;
-  font-size: calc(var(--card-h) * 0.13);
-  font-weight: 600;
-  color: var(--input-fg);
+.icon-pick {
   background: none;
   border: none;
-  padding: calc(var(--card-h) * 0.03) calc(var(--card-h) * 0.02);
+  padding: calc(var(--card-h) * 0.01);
   cursor: pointer;
+  line-height: 0;
 }
 
-.chip-insert:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.chip-x {
-  font: inherit;
-  font-size: calc(var(--card-h) * 0.11);
-  color: var(--btn-fg);
-  background: none;
-  border: none;
-  padding: 0 calc(var(--card-h) * 0.02);
-  cursor: pointer;
-}
-
-.sched-controls {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--card-h) * 0.03);
-}
-
-.sched-spacer {
-  flex: 1;
+.icon-pick img {
+  height: calc(var(--card-h) * 0.24);
 }
 
 .cell {
