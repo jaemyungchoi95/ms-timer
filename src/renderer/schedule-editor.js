@@ -270,6 +270,9 @@ export function initScheduleEditor({ trigger, panel, getLang, onChange }) {
   }
 
   function showEdit() {
+    // 모달이 열린 채 제목 재클릭 시 재빌드하면 미저장 편집이 조용히 날아간다 —
+    // 모달이 제목을 가리지 않는 창 크기에서 실제로 가능한 경로 (리뷰 지적).
+    if (!panel.hidden) return;
     closePicker();
     rowsEl.textContent = '';
     for (const wp of current.waypoints) rowsEl.append(buildRow(wp, false));
