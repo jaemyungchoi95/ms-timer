@@ -23,14 +23,16 @@
           </div>
           <div class="target" id="target">
             <button class="target-display" type="button" data-target-display></button>
-            <div class="target-edit" data-target-edit hidden>
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 십의 자리" data-l10n="ariaH10" data-cell />
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="시 일의 자리" data-l10n="ariaH1" data-cell />
-              <span class="cell-sep">:</span>
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 십의 자리" data-l10n="ariaM10" data-cell />
-              <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="분 일의 자리" data-l10n="ariaM1" data-cell />
-              <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-target-ok>✓</button>
-              <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-target-cancel>↻</button>
+            <!-- 일정 오버레이 패널 — 행(경유지·최종)은 schedule-editor.js 가 동적 생성 -->
+            <div class="sched-edit" data-sched-edit hidden>
+              <div class="sched-rows" data-sched-rows></div>
+              <div class="sched-presets" data-sched-presets></div>
+              <div class="sched-controls">
+                <button class="target-btn" type="button" aria-label="일정 추가" data-l10n="ariaAddWaypoint" data-sched-add>+</button>
+                <span class="sched-spacer"></span>
+                <button class="target-btn" type="button" aria-label="확정" data-l10n="ariaOk" data-sched-ok>✓</button>
+                <button class="target-btn" type="button" aria-label="취소" data-l10n="ariaCancel" data-sched-cancel>↻</button>
+              </div>
             </div>
           </div>
         </header>

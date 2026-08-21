@@ -178,8 +178,16 @@ function validPetPos(pos) {
   return pos !== null && typeof pos === 'object' && Number.isFinite(pos.x) && Number.isFinite(pos.y);
 }
 
-function openPopup() {
-  // replace-not-stack: 재발화(시계 역행 등) 시 겹겹이 쌓지 않는다
+/** 팝업 문구 길이 상한 — renderer 페이로드 검증 (popup.js 의 TEXT_MAX 와 동일). */
+const POPUP_TEXT_MAX = 40;
+
+/**
+ * text 는 renderer 가 결정한 팝업 문구 (경유지 이름/폴백 또는 완료 라벨).
+ * null 이면 query 없이 로드 — popup.js 가 언어별 기본 문구로 폴백한다.
+ */
+function openPopup(text) {
+  // replace-not-stack: 재발화(시계 역행·절전 다중 통과) 시 겹겹이 쌓지 않는다 —
+  // 다중 통과에서는 renderer 가 정렬 순서로 보내므로 가장 늦은 checkpoint 가 남는다
   destroyPopup();
 
   const w = new BrowserWindow({
@@ -243,12 +251,18 @@ function openPopup() {
     w.showInactive(); // 활성화를 요청하지 않는다 — Windows 의 거부에 기대지 않고 아예 안 묻는다
   });
 
-  w.loadFile(path.join(import.meta.dirname, 'renderer/popup.html'));
+  w.loadFile(
+    path.join(import.meta.dirname, 'renderer/popup.html'),
+    text === null ? undefined : { query: { text } },
+  );
 }
 
-ipcMain.on('ms-timer:expired', () => {
+ipcMain.on('ms-timer:expired', (_e, text) => {
   raiseMain();
-  openPopup();
+  // 검증 실패는 무페이로드 취급 — popup.js 가 기본 문구로 폴백한다
+  openPopup(
+    typeof text === 'string' && text.length > 0 && text.length <= POPUP_TEXT_MAX ? text : null,
+  );
 });
 
 ipcMain.on('ms-timer:state', (_e, state) => {
