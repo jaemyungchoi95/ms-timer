@@ -6,6 +6,22 @@ test('LANGS 는 STRINGS 의 키와 일치한다', () => {
   assert.deepEqual(LANGS, Object.keys(STRINGS));
 });
 
+test('fill — "{}" 1회 치환 템플릿', async () => {
+  const mod = await import('../src/lib/strings.js');
+  assert.equal(typeof mod.fill, 'function', 'strings.js 가 fill 을 export 해야 한다');
+  assert.equal(mod.fill('{}까지', '점심'), '점심까지');
+  assert.equal(mod.fill('UNTIL {}', 'LUNCH'), 'UNTIL LUNCH');
+});
+
+test('waypointUntil 템플릿은 모든 로케일에서 "{}" 를 포함한다', () => {
+  for (const lang of LANGS) {
+    assert.ok(
+      STRINGS[lang].waypointUntil?.includes('{}'),
+      `${lang}.waypointUntil 에 "{}" 자리표시자가 없다`,
+    );
+  }
+});
+
 test('모든 로케일의 키 집합이 동일하다 — 한쪽에만 문자열을 추가하면 여기서 깨진다', () => {
   const [first, ...rest] = LANGS;
   const reference = Object.keys(STRINGS[first]).sort();

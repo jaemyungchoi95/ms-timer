@@ -2,6 +2,14 @@
 const PATTERN = /^(\d{2}):(\d{2})$/;
 
 /**
+ * {h, m} 객체형의 시각 범위 규칙 — parseTarget 의 00:00–23:59 와 같은 규칙의
+ * 객체 버전이다. JSON 복원값(schedule/presets)이 쓴다 — 범위 규칙은 이 파일에만.
+ */
+export function isValidTime(h, m) {
+  return Number.isInteger(h) && Number.isInteger(m) && h >= 0 && h <= 23 && m >= 0 && m <= 59;
+}
+
+/**
  * "HH:MM" → {h, m}. 형식이 다르거나 00:00–23:59 범위를 벗어나면 null.
  *
  * 저장값과 사용자 입력이 모두 이 함수를 탄다 — 검증 규칙은 여기에만 존재한다.

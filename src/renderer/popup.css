@@ -20,8 +20,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.2rem;
+  gap: 0.8rem;
   /* frameless 라 드래그 이동 불가가 기본 — 이 창은 60초짜리라 이동이 필요 없다 */
+}
+
+.popup-icon {
+  height: 2.4rem;
 }
 
 .popup-message {
@@ -32,8 +36,9 @@ body {
   color: var(--accent);
   max-width: 90%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 경유지 폴백 문구(13자+)가 320px 에서 넘친다 — 말줄임 대신 2줄 감싸기 */
+  text-align: center;
+  line-height: 1.25;
 }
 
 .popup-ok {

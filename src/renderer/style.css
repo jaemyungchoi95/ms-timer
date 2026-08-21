@@ -85,21 +85,14 @@ body {
   display: none;
 }
 
-/* target 편집기가 열린 동안만 제목을 더 조인다 — 실측 임계: 표시 모드 ≈244px(=card-h×5.08),
-   편집기 열림 ≈155px(=card-h×3.23). 기본 max-width(×5)는 표시 모드만 방어하므로,
-   편집기 열림이라는 짧은 순간에는 :has() 로 임계 아래까지 말줄임한다. 닫으면 온전히 복귀. */
-.header:has(.target-edit:not([hidden])) .title {
-  max-width: calc(var(--card-h) * 3.1);
-}
+/* 구 target 인라인 편집기의 제목 조임 규칙은 제거됐다 — 일정 패널은 absolute
+   오버레이라 헤더 폭에 기여하지 않으므로 편집 중 제목이 밀릴 일이 없다. */
 
-.label-edit {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--card-h) * 0.06);
-}
-
-.label-edit[hidden] {
-  display: none;
+/* 헤더 뱃지 — 현재 구간의 아이콘. src 는 clock.js 가 구간 전환 시 갱신한다. */
+.title-badge {
+  height: calc(var(--card-h) * 0.3);
+  align-self: center;
+  margin-right: calc(var(--card-h) * 0.06);
 }
 
 .label-input {
@@ -123,37 +116,119 @@ body {
   border-color: var(--title-fg);
 }
 
-.label-edit.invalid .label-input {
-  border-color: var(--input-border-invalid);
+/* 일정 모달 v2 — 창 중앙 고정 오버레이 (spec §5c). 헤더 레이아웃과 무관하다. */
+.sched-edit {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--card-h) * 0.06);
+  padding: calc(var(--card-h) * 0.1) calc(var(--card-h) * 0.12);
+  background: var(--frame-bg);
+  border: 1px solid var(--input-border);
+  border-radius: calc(var(--card-h) * 0.12);
+  box-shadow: var(--card-shadow);
+  max-height: 86vh;
+  max-width: 94vw;
+  overflow-y: auto;
 }
 
-.target {
-  position: absolute;
-  right: calc(var(--card-h) * 0.16);
-  bottom: 0;
-  font-size: calc(var(--card-h) * 0.2);
-  font-weight: 600;
-  color: var(--title-fg);
+/* [hidden] 의 UA display:none 은 위 display:flex 에 진다 — 명시적으로 이긴다 */
+.sched-edit[hidden] {
+  display: none;
 }
 
-.target-display {
-  font: inherit;
-  color: inherit;
+.sched-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--card-h) * 0.05);
+}
+
+.sched-bottom {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 크롬 버튼(저장·닫기·일정추가) — Lucide 흑색 스트로크 PNG, 테마별 반전은 themes.css */
+.sched-chrome {
   background: none;
   border: none;
-  padding: 0;
+  padding: calc(var(--card-h) * 0.02);
   cursor: pointer;
+  line-height: 0;
 }
 
-.target-edit {
+.sched-chrome:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sched-chrome img {
+  height: calc(var(--card-h) * 0.2);
+  filter: var(--chrome-filter);
+}
+
+.sched-rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--card-h) * 0.05);
+}
+
+.sched-row {
   display: flex;
   align-items: center;
   gap: calc(var(--card-h) * 0.03);
 }
 
-/* [hidden] 의 UA display:none 은 위 display:flex 에 진다 — 명시적으로 이긴다 */
-.target-edit[hidden] {
-  display: none;
+.sched-row.invalid .cell,
+.sched-row.invalid .sched-phrase {
+  border-color: var(--input-border-invalid);
+}
+
+.sched-badge {
+  background: none;
+  border: none;
+  padding: 0 calc(var(--card-h) * 0.02) 0 0;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.sched-badge:disabled {
+  cursor: default; /* Finish 뱃지 — 고정이지만 흐려지진 않는다 */
+}
+
+.sched-badge img {
+  height: calc(var(--card-h) * 0.26);
+}
+
+.sched-phrase {
+  width: calc(var(--card-h) * 1.45);
+}
+
+/* 뱃지 picker — 해당 행 바로 아래 가로 스트립, 항상 1개 이하 */
+.icon-picker {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--card-h) * 0.04);
+  padding: calc(var(--card-h) * 0.04);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: calc(var(--card-h) * 0.06);
+}
+
+.icon-pick {
+  background: none;
+  border: none;
+  padding: calc(var(--card-h) * 0.01);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.icon-pick img {
+  height: calc(var(--card-h) * 0.24);
 }
 
 .cell {
@@ -176,10 +251,6 @@ body {
 
 .cell:focus {
   border-color: var(--title-fg);
-}
-
-.target-edit.invalid .cell {
-  border-color: var(--input-border-invalid);
 }
 
 .cell-sep {
