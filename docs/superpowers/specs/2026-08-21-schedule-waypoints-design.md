@@ -23,6 +23,8 @@
 5. **이름 없는 경유지의 팝업 기본 문구 = "무언가 하실 시간입니다!"**
    (en: "TIME TO DO SOMETHING!"). 제목 폴백은 시각을 쓴다("11:30까지") —
    종결형 문구는 "~까지" 템플릿과 결합할 수 없다. (spec 승인 시 사용자 수정 반영)
+6. **경유 프리셋 1차 포함** (2026-08-21 사용자 선택, §5b). 프로토를 만들어
+   실사용 평가 후 세부를 재논의한다 — UI 세부는 프로토 피드백으로 변경될 수 있다.
 
 ## §1 데이터 모델과 저장
 
@@ -133,6 +135,32 @@ strings.js에 신규 키(ko/en 대칭 — 기존 테스트가 강제):
   구간 전환 시 갱신된다. 편집 패널이 열려 있는 동안 표시 갱신은 display
   요소에만 적용되고 편집 중 스냅샷은 건드리지 않는다.
 
+## §5b 경유 프리셋
+
+프리셋 = 저장된 `{h, m, name}` — waypoint와 같은 모양의 **복사 원본**이다
+(copy-on-insert). 유형(type) 필드·분류 체계는 두지 않는다: 프리셋의 정체는
+문구 그 자체이고, 삽입 후 값은 일반 행과 동일하게 자유 편집한다.
+프리셋 수정·삭제는 기존 일정에 영향을 주지 않는다.
+
+- **코어 `src/lib/presets.js`** (신규, 순수 모듈):
+  - `parsePresets(str)` / `formatPresets(list)` — 엄격 관용. 규칙: **문구 필수**
+    (trim 1..12자), 시각 범위(parseTarget과 동일), **문구 키 중복 없음**,
+    개수 ≤6. 위반 시 전체 null → 호출부 빈 배열 폴백. 시각 오름차순 정렬 반환.
+  - `upsertPreset(list, preset)` — 같은 문구 = 시각 갱신, 새 문구 = 추가.
+    잘못된 preset이거나 신규인데 캡(6) 초과면 null 반환(호출부는 무시).
+  - 저장 키 `ms-timer:waypoint-presets` 신규.
+- **UI (패널 확장)**:
+  - 행 목록 아래 **프리셋 칩 스트립**: 칩 = `문구 HH:MM` + 삭제 ✕.
+    칩 클릭 → 행 추가 + 값 복사(행 캡 6이면 칩 비활성), ✕ → 프리셋 삭제.
+  - 각 waypoint 행에 **☆(프리셋으로 저장)**: 시각 유효 + **문구 있는 행에만
+    활성** — 이름 없는 프리셋은 무의미(시각만 복사할 거면 직접 입력이 빠름).
+    캡 상태에서는 기존 문구 갱신만 허용, 신규는 비활성.
+  - **☆는 즉시 저장** — 프리셋은 일정이 아니라 라이브러리다. 패널 ↻ 취소와
+    무관하게 남으며, 일정 커밋(✓)의 원자성은 그대로다.
+  - 칩 삽입으로 생긴 행도 일반 행과 동일한 live 검증·커밋 시 정렬을 탄다.
+  - 패널이 최소 창(420×200)을 넘으면 내부 스크롤(overflow-y).
+- **엣지**: 프리셋 저장 손상 → 빈 배열 폴백(§6-7과 동일 관용).
+
 ## §6 엣지 케이스 (전부 구현 범위)
 
 1. **낮에 기동**: 지난 경유지 tracker는 null 센티널로 침묵(기존
@@ -167,6 +195,8 @@ strings.js에 신규 키(ko/en 대칭 — 기존 테스트가 강제):
   selectLeg 경계(정확히 경유지 시각, 전부 지남, 빈 배열, 최종만 남음).
 - `createScheduleAlarms` 시나리오(schedule.test.js):
   기동 침묵 / 자정 재무장 / rebaseline / 절전 다중 통과의 발화 목록·순서.
+- `test/presets.test.js` (신규): parse/format 왕복 / 문구 필수·중복·캡 /
+  upsert 갱신·추가·거부 / 손상 입력 null.
 - `test/strings.test.js`: ko/en 키 대칭이 신규 키를 자동 강제(기존 테스트).
 - 기존 테스트 전부 green 유지 — 경유지 0개 경로가 기존 동작과 동일함을 보장.
 - renderer(패널 DOM·popup query)는 기존 원칙대로 테스트 비대상.
@@ -176,7 +206,8 @@ strings.js에 신규 키(ko/en 대칭 — 기존 테스트가 강제):
 | 파일 | 변경 |
 |---|---|
 | `src/lib/schedule.js` | 신규 — §2 전부 |
-| `src/lib/strings.js` | §3 신규 키 |
+| `src/lib/presets.js` | 신규 — §5b 코어 |
+| `src/lib/strings.js` | §3 신규 키 + 프리셋 aria 키 |
 | `src/renderer/clock.js` | createScheduleAlarms 배선·leg 선택·제목/발화 문구·페이로드 전송 |
 | `src/renderer/schedule-editor.js` | target-editor.js 확장/대체 — §5 패널 |
 | `src/renderer/index.html` | 패널 마크업 |
@@ -186,6 +217,7 @@ strings.js에 신규 키(ko/en 대칭 — 기존 테스트가 강제):
 | `src/renderer/popup.js` | query 우선 문구, readDoneLabel 복제 제거 |
 | `README.md` | 조작법 갱신 |
 | `test/schedule.test.js` | 신규 |
+| `test/presets.test.js` | 신규 |
 
 **불변 영역**: flip/reel 렌더링, 테마(T), 언어 토글(L) 메커니즘, pet 창·스프라이트·
 opacity, 팝업 수명주기, countdown.js·expiry-tracker.js·timer-state.js 모듈 자체.
@@ -199,3 +231,4 @@ opacity, 팝업 수명주기, countdown.js·expiry-tracker.js·timer-state.js �
 - [ ] 재시작 후 일정 복원, 자정 넘김 후 다음 날 재발화
 - [ ] 절전(또는 시계 변경)으로 2개 통과 → 팝업 1개만
 - [ ] 고양이: 경유지 10분 전 imminent, 최종에만 축하
+- [ ] 프리셋: ☆ 저장(이름 없는 행은 비활성) → 칩 삽입 → ✕ 삭제 → 재시작 후 유지
